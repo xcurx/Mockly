@@ -1,0 +1,14 @@
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    nvidia_api_key: str = ""
+    nvidia_base_url: str = ""
+    nvidia_model: str = ""
+    cors_origins: list[str] = ["http://localhost:3000"]
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()
+
+
