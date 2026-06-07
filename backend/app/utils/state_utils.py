@@ -1,4 +1,4 @@
-def _searialize_state(state: dict) -> dict:
+def _serialize_state(state: dict) -> dict:
     serialized = dict(state)
     serialized["messages"] = [
         {"role": "ai" if hasattr(m, "type") and m.type == "ai" else "human", "content": m.content}
