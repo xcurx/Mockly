@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from fastapi import APIRouter
 from app.agents.graph import interview_graph
 from app.utils.state_utils import _serialize_state, _deserialize_state
+from concurrent.futures import ThreadPoolExecutor
+import asyncio
 
 interview_router = APIRouter()
 
@@ -60,19 +62,31 @@ async def respond_to_answer(req: AnswerRequest):
     state["messages"].append(HumanMessage(content=req.user_answer))
 
     try:
-        eval_result = evaluate_answer_node(state)
+        with ThreadPoolExecutor() as executor:
+            eval_future = executor.submit(evaluate_answer_node, state)
+
+            question_future = None
+            if state["current_question_number"] <= state["max_questions"]:
+                question_future = executor.submit(generate_question_node, state)
+            
+            research_future = None
+            if state["current_question_number"] % 5 == 0:
+                research_future = executor.submit(research_node, state)
+
+            eval_result = eval_future.result()
+            question_result = question_future.result() if question_future else None
+            research_result = research_future.result() if research_future else None
         
         for key, value in eval_result.items():
             if key == "messages":
                 state["messages"].extend(value)
             else:
                 state[key] = value
-            
+
         if state.get("interview_complete", False):
             summary_result = summarize_node(state)
             for key, value in summary_result.items():
                 state[key] = value
-
             return {
                 "evaluation": state.get("current_evaluation"),
                 "interview_complete": True,
@@ -80,17 +94,15 @@ async def respond_to_answer(req: AnswerRequest):
                 "interview_state": _serialize_state(state)
             }
         
-        if state["current_question_number"] % 5 == 0:
-            research_result = research_node(state)
+        if research_result:
             state["research_context"] = research_result["research_context"]
-
-        question_result = generate_question_node(state)
-        for key, value in question_result.items():
-            if key == "messages":
-                state["messages"].extend(value)
-            else:
-                state[key] = value
-
+        if question_result:
+            for key, value in question_result.items():
+                if key == "messages":
+                    state["messages"].extend(value)
+                else:
+                    state[key] = value
+ 
         return {
             "evaluation": state.get("current_evaluation"),
             "question": state.get("current_question", {}),
