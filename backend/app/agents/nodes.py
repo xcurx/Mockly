@@ -57,7 +57,7 @@ def generate_question_node(state: dict) -> dict:
     llm = get_llm()
 
     prompt = QUESTION_GENERATION_PROMPT.format(
-        topics=", ".join(state["topics"]) + state.get("custom_topics", []),
+        topics=", ".join(state["topics"] + state.get("custom_topics", [])),
         question_number=state["current_question_number"],
         max_questions=state["max_questions"],
         research_context=state.get("research_context", "No research available"),
@@ -112,10 +112,10 @@ def evaluate_answer_node(state: dict) -> dict:
             user_answer=user_answer,
         )
 
-    response = llm.invoke(
+    response = llm.invoke([
         SystemMessage(content="You are an expert interviewer. Always respond with valid JSON"),
         HumanMessage(content=prompt)
-    )
+    ])
 
     try:
         evaluation = json.loads(response.content)
@@ -125,7 +125,7 @@ def evaluate_answer_node(state: dict) -> dict:
             "feedback": response.content,
         }
     
-    if state["node"] == "training":
+    if state["mode"] == "training":
         ai_response = evaluation.get("feedback", "")
         if evaluation.get("ideal_answer"):
             ai_response += f"\n\n**Ideal Answer:** {evaluation['ideal_answer']}"
@@ -157,7 +157,7 @@ def summarize_node(state: dict) -> dict:
         exchanges.append(f"Q{i+1}: {q.get('question', '')}\nScore: {e.get('score', 'N/A')}")
 
     prompt = SUMMARY_PROMPT.format(
-        topics=", ".join(state["topics"]) + state.get("custom_topics", []),
+        topics=", ".join(state["topics"] + state.get("custom_topics", [])),
         mode=state["mode"],
         total_questions=len(questions),
         exchanges="\n\n".join(exchanges)
