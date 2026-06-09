@@ -81,14 +81,22 @@ def generate_question_node(state: dict) -> dict:
     from langchain_core.utils.json import parse_json_markdown
     try:
         question_data = parse_json_markdown(response.content)
-    except json.JSONDecodeError:
-        question_data = {
-            "question": response.content,
-            "expected_answer_points": [],
-            "difficulty": "medium",
-            "source": "llm",
-            "topic": state["topics"][0] if state["topics"] else "general",
-        }
+    except Exception:
+        import json_repair
+        try:
+            repaired = json_repair.repair_json(response.content, return_objects=True)
+            if isinstance(repaired, dict):
+                question_data = repaired
+            else:
+                raise ValueError("Repaired JSON is not a dict")
+        except Exception:
+            question_data = {
+                "question": "⚠️ The LLM generated a cut-off question. Please end the interview.",
+                "expected_answer_points": [],
+                "difficulty": "medium",
+                "source": "llm",
+                "topic": state["topics"][0] if state["topics"] else "General"
+            }
 
     updated_questions = state.get("questions_asked", []) + [question_data]
 
@@ -130,10 +138,18 @@ def evaluate_answer_node(state: dict) -> dict:
     try:
         evaluation = parse_json_markdown(response.content)
     except Exception:
-        evaluation = {
-            "score": 5,
-            "feedback": response.content,
-        }
+        import json_repair
+        try:
+            repaired = json_repair.repair_json(response.content, return_objects=True)
+            if isinstance(repaired, dict):
+                evaluation = repaired
+            else:
+                raise ValueError("Repaired JSON is not a dictionary")
+        except Exception:
+            evaluation = {
+                "score": 5,
+                "feedback": "⚠️ The AI generated an extremely long response that was cut off. Please continue to the next question.",
+            }
     
     if state["mode"] == "training":
         ai_response = evaluation.get("feedback", "")
@@ -194,10 +210,22 @@ def summarize_node(state: dict) -> dict:
     try:
         summary = parse_json_markdown(response.content)
     except Exception:
-        summary = {
-            "overall_score": 0,
-            "grade": "N/A",
-            "feedback": response.content
-        }
+        import json_repair
+        try:
+            repaired = json_repair.repair_json(response.content, return_objects=True)
+            if isinstance(repaired, dict):
+                summary = repaired
+            else:
+                raise ValueError("Repaired JSON is not a dict")
+        except Exception:
+            summary = {
+                "overall_score": 0,
+                "grade": "N/A",
+                "strengths": [],
+                "weaknesses": [],
+                "per_question_summary": [],
+                "recommendations": [],
+                "encouragement": "We couldn't generate a summary due to an error.",
+            }
     
     return {"current_summary": summary, "interview_complete": True}
