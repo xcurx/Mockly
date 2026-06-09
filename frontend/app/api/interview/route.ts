@@ -58,16 +58,29 @@ export async function POST(req: NextRequest) {
             })
         }
 
+        let questionText: string | null = null;
+        if (result.question) {
+            if (typeof result.question === "string") {
+                try {
+                    const parsed = JSON.parse(result.question);
+                    questionText = parsed.question || result.question;
+                } catch {
+                    questionText = result.question;
+                }
+            } else if (typeof result.question === "object") {
+                questionText = result.question.question || JSON.stringify(result.question);
+            }
+        }
+
         return NextResponse.json({
             interviewId: interview.id,
-            question: result.question,
+            question: questionText,
             interviewState: result.interview_state
         })
     } catch(error) {
-        await prisma.interview.update({
-            where: { id: interview.id },
-            data: { status: "ABANDONED" }
-        });
+        await prisma.interview.delete({
+            where: { id: interview.id }
+        })
         const message = error instanceof Error ? error.message : "Unknown error";
         return NextResponse.json({ error: message }, { status: 500 });
     }
