@@ -2,9 +2,9 @@
 
 import { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Robot, User, CircleNotch } from "@phosphor-icons/react";
+import { MarkdownRenderer } from "@/components/interview/markdown-renderer";
 
 export interface Message {
   id: string;
@@ -27,7 +27,7 @@ export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
 
   return (
     <ScrollArea className="flex-1 p-4">
-      <div className="max-w-2xl mx-auto space-y-4">
+      <div className="max-w-4xl mx-auto space-y-4">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -44,13 +44,17 @@ export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
 
             <div
               className={cn(
-                "max-w-[80%] rounded-lg px-3.5 py-2.5 text-sm leading-relaxed",
+                "max-w-[80%] rounded-lg px-3.5 py-2.5",
                 msg.role === "user"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground text-sm leading-relaxed"
                   : "bg-muted/50 border border-border/50"
               )}
             >
-              <MessageContent content={msg.content} />
+              {msg.role === "ai" ? (
+                <MarkdownRenderer content={msg.content?.trim()} />
+              ) : (
+                <span>{msg.content}</span>
+              )}
             </div>
 
             {msg.role === "user" && (
@@ -76,37 +80,5 @@ export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
         <div ref={bottomRef} />
       </div>
     </ScrollArea>
-  );
-}
-
-function MessageContent({ content }: { content: string }) {
-  // Simple markdown-like rendering for bold and code blocks
-  const parts = content.split(/(```[\s\S]*?```|\*\*.*?\*\*|\n)/g);
-
-  return (
-    <div className="space-y-1">
-      {parts.map((part, i) => {
-        if (part === "\n") return <br key={i} />;
-        if (part.startsWith("```") && part.endsWith("```")) {
-          const code = part.slice(3, -3).replace(/^\w+\n/, "");
-          return (
-            <pre
-              key={i}
-              className="bg-background/50 border border-border/50 rounded-md p-2.5 overflow-x-auto text-xs font-mono mt-2 mb-1"
-            >
-              <code>{code}</code>
-            </pre>
-          );
-        }
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return (
-            <strong key={i} className="font-semibold">
-              {part.slice(2, -2)}
-            </strong>
-          );
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </div>
   );
 }

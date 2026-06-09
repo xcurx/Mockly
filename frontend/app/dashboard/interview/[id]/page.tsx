@@ -151,17 +151,43 @@ export default function InterviewPage() {
         const data = await res.json();
 
         if (data.evaluation) {
+          const toStr = (val: unknown): string => {
+            if (val === null || val === undefined) return "";
+            if (typeof val === "string") return val.trim();
+            
+            // format objects as bold key-value pairs
+            if (typeof val === "object" && !Array.isArray(val)) {
+                return Object.entries(val)
+                    .map(([k, v]) => {
+                        const formattedKey = k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');
+                        const formattedVal = typeof v === 'string' ? v : JSON.stringify(v);
+                        return `**${formattedKey}**: ${formattedVal}`;
+                    })
+                    .join('\n\n');
+            }
+            
+            // format arrays as bullet lists
+            if (Array.isArray(val)) {
+                return val.map(item => {
+                    const itemStr = typeof item === 'string' ? item : JSON.stringify(item);
+                    return `- ${itemStr}`;
+                }).join('\n');
+            }
+            
+            return JSON.stringify(val, null, 2);
+          };
+
           const evalText =
-            data.evaluation.feedback ||
-            data.evaluation.response ||
-            JSON.stringify(data.evaluation);
+            toStr(data.evaluation.feedback) ||
+            toStr(data.evaluation.response) ||
+            toStr(data.evaluation);
 
           let fullEvalText = evalText;
           if (data.evaluation.ideal_answer) {
-            fullEvalText += `\n\n**Ideal Answer:** ${data.evaluation.ideal_answer}`;
+            fullEvalText += `\n\n**Ideal Answer:**\n${toStr(data.evaluation.ideal_answer)}`;
           }
           if (data.evaluation.follow_up) {
-            fullEvalText += `\n\n${data.evaluation.follow_up}`;
+            fullEvalText += `\n\n${toStr(data.evaluation.follow_up)}`;
           }
 
           setMessages((prev) => [
@@ -218,14 +244,17 @@ export default function InterviewPage() {
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Something went wrong";
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `err-${Date.now()}`,
-            role: "ai",
-            content: `⚠️ Error: ${message}. Please try again.`,
-          },
-        ]);
+        setMessages((prev) => {
+          const filtered = prev.filter(m => m.id !== userMsgId);
+          return [
+            ...filtered,
+            {
+              id: `err-${Date.now()}`,
+              role: "ai",
+              content: `⚠️ Error: ${message}. Please try again.`,
+            },
+          ];
+        });
       } finally {
         setIsThinking(false);
       }
