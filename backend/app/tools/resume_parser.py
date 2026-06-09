@@ -67,7 +67,7 @@ def parse_resume(file_bytes: bytes, filename:str) -> dict:
         raise ValueError("Could not extract text from file")
 
     llm = ChatOpenAI(
-        model=settings.nvidia_model,
+        model=settings.nvidia_fast_model,
         base_url=settings.nvidia_base_url,
         api_key=settings.nvidia_api_key,
         temperature=0.1
