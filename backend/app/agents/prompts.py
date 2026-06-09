@@ -60,6 +60,10 @@ Evaluate the answer thoroughly:
 
 Be encouraging but honest. This is a learning experience.
 
+IMPORTANT JSON RULES:
+- Your response MUST be strictly valid JSON.
+- Do NOT use raw unescaped newlines inside JSON string values (like `ideal_answer`). You must use the `\n` escape sequence for newlines inside strings.
+
 Respond in this exact JSON format:
 {{
     "score": 8,
@@ -83,6 +87,10 @@ Behave like a REAL interviewer:
 - Do NOT reveal the correct answer
 - Do NOT give detailed feedback
 - Keep responses short and professional
+
+IMPORTANT JSON RULES:
+- Your response MUST be strictly valid JSON.
+- Do NOT use raw unescaped newlines inside JSON string values. You must use the `\n` escape sequence.
 
 Respond in this exact JSON format:
 {{

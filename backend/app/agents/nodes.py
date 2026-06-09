@@ -11,16 +11,24 @@ from app.agents.prompts import (
 )
 from app.tools.web_search import search_interview_questions
 
-def get_llm() -> ChatOpenAI:
+def get_fast_llm() -> ChatOpenAI:
     return ChatOpenAI(
-        model=settings.nvidia_model,
+        model=settings.nvidia_fast_model,
+        base_url=settings.nvidia_base_url,
+        api_key=settings.nvidia_api_key,
+        temperature=0.7,
+    )
+
+def get_smart_llm() -> ChatOpenAI:
+    return ChatOpenAI(
+        model=settings.nvidia_smart_model,
         base_url=settings.nvidia_base_url,
         api_key=settings.nvidia_api_key,
         temperature=0.7,
     )
 
 def research_node(state: dict) -> dict:
-    llm = get_llm()
+    llm = get_fast_llm()
     topics = state["topics"] + state.get("custom_topics", [])
 
     resume_context = ""
@@ -54,7 +62,7 @@ def research_node(state: dict) -> dict:
     return {"research_context": research_context}
 
 def generate_question_node(state: dict) -> dict:
-    llm = get_llm()
+    llm = get_smart_llm()
 
     prompt = QUESTION_GENERATION_PROMPT.format(
         topics=", ".join(state["topics"] + state.get("custom_topics", [])),
@@ -91,7 +99,7 @@ def generate_question_node(state: dict) -> dict:
     }
 
 def evaluate_answer_node(state: dict) -> dict:
-    llm = get_llm()
+    llm = get_smart_llm()
     current_q = state.get("current_question", {})
 
     user_answer = ""
@@ -161,7 +169,7 @@ def evaluate_answer_node(state: dict) -> dict:
     }
 
 def summarize_node(state: dict) -> dict:
-    llm = get_llm()
+    llm = get_fast_llm()
 
     exchanges = []
     questions = state.get("questions_asked", [])
