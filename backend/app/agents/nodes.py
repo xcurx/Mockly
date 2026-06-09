@@ -9,7 +9,7 @@ from app.agents.prompts import (
     EVALUATE_ANSWER_REALISTIC_PROMPT,
     SUMMARY_PROMPT,
 )
-# from app.tools.web_search import search_interview_questions
+from app.tools.web_search import search_interview_questions
 
 def get_llm() -> ChatOpenAI:
     return ChatOpenAI(
@@ -39,8 +39,8 @@ def research_node(state: dict) -> dict:
 
     all_results = []
     for query in seach_queries[:3]:
-        # results = search_interview_questions(query)
-        # all_results.extend(results)
+        results = search_interview_questions(query)
+        all_results.extend(results)
         pass
 
     research_context = "\n\n".join(
@@ -70,8 +70,9 @@ def generate_question_node(state: dict) -> dict:
         HumanMessage(content=prompt)
     ])
 
+    from langchain_core.utils.json import parse_json_markdown
     try:
-        question_data = json.loads(response.content)
+        question_data = parse_json_markdown(response.content)
     except json.JSONDecodeError:
         question_data = {
             "question": response.content,
@@ -117,9 +118,10 @@ def evaluate_answer_node(state: dict) -> dict:
         HumanMessage(content=prompt)
     ])
 
+    from langchain_core.utils.json import parse_json_markdown
     try:
-        evaluation = json.loads(response.content)
-    except json.JSONDecodeError:
+        evaluation = parse_json_markdown(response.content)
+    except Exception:
         evaluation = {
             "score": 5,
             "feedback": response.content,
@@ -127,12 +129,24 @@ def evaluate_answer_node(state: dict) -> dict:
     
     if state["mode"] == "training":
         ai_response = evaluation.get("feedback", "")
+        if not isinstance(ai_response, str):
+            ai_response = json.dumps(ai_response, indent=2)
+            
         if evaluation.get("ideal_answer"):
-            ai_response += f"\n\n**Ideal Answer:** {evaluation['ideal_answer']}"
+            ideal = evaluation['ideal_answer']
+            if not isinstance(ideal, str):
+                ideal = json.dumps(ideal, indent=2)
+            ai_response += f"\n\n**Ideal Answer:**\n{ideal}"
     else:
         ai_response = evaluation.get("response", "")
+        if not isinstance(ai_response, str):
+            ai_response = json.dumps(ai_response, indent=2)
+            
         if evaluation.get("follow_up"):
-            ai_response += f"\n\n{evaluation['follow_up']}"
+            follow = evaluation['follow_up']
+            if not isinstance(follow, str):
+                follow = json.dumps(follow, indent=2)
+            ai_response += f"\n\n{follow}"
     
     updated_evals = state.get("evaluation_history", []) + [evaluation]
     next_q_num = state["current_question_number"] + 1
@@ -168,9 +182,10 @@ def summarize_node(state: dict) -> dict:
         HumanMessage(content=prompt),
     ])
 
+    from langchain_core.utils.json import parse_json_markdown
     try:
-        summary = json.loads(response.content)
-    except json.JSONDecodeError:
+        summary = parse_json_markdown(response.content)
+    except Exception:
         summary = {
             "overall_score": 0,
             "grade": "N/A",
