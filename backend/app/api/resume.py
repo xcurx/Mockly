@@ -10,7 +10,7 @@ async def parse_resume_endpoint(file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename")
 
-    if not file.filename.lower().endswith(".pdf", ".docx"):
+    if not file.filename.lower().endswith((".pdf", ".docx")):
         raise HTTPException(status_code=400, detail="Only PDF and DOCX files are allowed")
 
     file_bytes = await file.read()
