@@ -39,7 +39,7 @@ export function ChatInput({
   }, [disabled]);
 
   return (
-    <div className="border-t border-border/50 p-4 bg-background/80 backdrop-blur-sm">
+    <div className="shrink-0 border-t border-border/50 bg-background/80 backdrop-blur-sm">
       <div className="max-w-2xl mx-auto flex gap-2 items-end">
         <Textarea
           ref={textareaRef}

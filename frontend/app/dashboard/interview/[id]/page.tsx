@@ -154,26 +154,26 @@ export default function InterviewPage() {
           const toStr = (val: unknown): string => {
             if (val === null || val === undefined) return "";
             if (typeof val === "string") return val.trim();
-            
+
             // format objects as bold key-value pairs
             if (typeof val === "object" && !Array.isArray(val)) {
-                return Object.entries(val)
-                    .map(([k, v]) => {
-                        const formattedKey = k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');
-                        const formattedVal = typeof v === 'string' ? v : JSON.stringify(v);
-                        return `**${formattedKey}**: ${formattedVal}`;
-                    })
-                    .join('\n\n');
+              return Object.entries(val)
+                .map(([k, v]) => {
+                  const formattedKey = k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');
+                  const formattedVal = typeof v === 'string' ? v : JSON.stringify(v);
+                  return `**${formattedKey}**: ${formattedVal}`;
+                })
+                .join('\n\n');
             }
-            
+
             // format arrays as bullet lists
             if (Array.isArray(val)) {
-                return val.map(item => {
-                    const itemStr = typeof item === 'string' ? item : JSON.stringify(item);
-                    return `- ${itemStr}`;
-                }).join('\n');
+              return val.map(item => {
+                const itemStr = typeof item === 'string' ? item : JSON.stringify(item);
+                return `- ${itemStr}`;
+              }).join('\n');
             }
-            
+
             return JSON.stringify(val, null, 2);
           };
 
@@ -290,7 +290,7 @@ export default function InterviewPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
+    <div className="flex flex-col h-[calc(100vh-5.6rem)] overflow-hidden">
       <InterviewHeader
         questionNumber={questionNumber}
         maxQuestions={maxQuestions}

@@ -26,7 +26,7 @@ export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
   }, [messages, isThinking]);
 
   return (
-    <ScrollArea className="flex-1 p-4">
+    <ScrollArea className="flex-1 py-2 min-h-0">
       <div className="max-w-4xl mx-auto space-y-4">
         {messages.map((msg) => (
           <div

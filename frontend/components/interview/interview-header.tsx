@@ -38,8 +38,8 @@ export function InterviewHeader({
   };
 
   return (
-    <div className="border-b border-border/50 bg-background/80 backdrop-blur-sm">
-      <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+    <div className="shrink-0 border-b border-border/50 bg-background/80 backdrop-blur-sm">
+      <div className="max-w-2xl mx-auto px-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <Badge variant="secondary" className="gap-1 text-xs shrink-0">
             <Hash weight="bold" className="size-3" />
