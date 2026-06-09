@@ -33,6 +33,7 @@ INSTRUCTIONS:
 - Do NOT repeat any previously asked question
 - Mix question types: conceptual, coding, scenario-based, system design
 - If resume data is available, tailor some questions to the candidate's experience
+- VERY IMPORTANT: Do NOT wrap the "question" text in markdown code blocks (e.g. ```text or ```markdown). Provide it as raw markdown text.
 
 Respond in this exact JSON format:
 {{
