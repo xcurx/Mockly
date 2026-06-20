@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ChatMessages, type Message } from "@/components/interview/chat-messages";
 import { ChatInput } from "@/components/interview/chat-input";
 import { InterviewHeader } from "@/components/interview/interview-header";
 import { CircleNotch } from "@phosphor-icons/react";
+import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
 
 interface InterviewSessionData {
   interviewState: Record<string, unknown>;
@@ -27,10 +28,14 @@ export default function InterviewPage() {
   const [questionNumber, setQuestionNumber] = useState(1);
   const [maxQuestions, setMaxQuestions] = useState(10);
   const [mode, setMode] = useState("TRAINING");
+  const [interactionType, setInteractionType] = useState("TEXT");
   const [topics, setTopics] = useState<string[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const { speak, cancel, isSpeaking } = useSpeechSynthesis();
+  const spokenMessagesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`interview-${params.id}`);
@@ -42,6 +47,7 @@ export default function InterviewPage() {
       const state = data.interviewState as Record<string, unknown>;
       setMaxQuestions((state.max_questions as number) || 10);
       setMode((state.mode as string)?.toUpperCase() || "TRAINING");
+      setInteractionType((state.interaction_type as string)?.toUpperCase() || "TEXT");
       setTopics((state.topics as string[]) || []);
 
       const questionText =
@@ -61,7 +67,9 @@ export default function InterviewPage() {
     } else {
       loadFromApi();
     }
-  }, [params.id]);
+    
+    return () => cancel();
+  }, [params.id, cancel]);
 
   const loadFromApi = async () => {
     try {
@@ -80,6 +88,7 @@ export default function InterviewPage() {
 
       setMaxQuestions(interview.maxQuestions);
       setMode(interview.mode);
+      setInteractionType(interview.interactionType || "TEXT");
       setTopics(interview.topics);
 
       const msgs: Message[] = [];
@@ -122,9 +131,24 @@ export default function InterviewPage() {
     }
   };
 
+  useEffect(() => {
+    if (!isLoaded || messages.length === 0) return;
+    
+    if (interactionType === "SPEECH_TO_SPEECH" || interactionType === "SPEECH_TO_TEXT") {
+      const lastMessage = messages[messages.length - 1];
+      
+      if (lastMessage.role === "ai" && !spokenMessagesRef.current.has(lastMessage.id)) {
+        spokenMessagesRef.current.add(lastMessage.id);
+        speak(lastMessage.content);
+      }
+    }
+  }, [messages, isLoaded, interactionType, speak]);
+
   const handleSendAnswer = useCallback(
     async (answer: string) => {
       if (!sessionData || isThinking) return;
+      
+      cancel();
 
       const userMsgId = `a-${questionNumber}`;
       setMessages((prev) => [
@@ -155,7 +179,6 @@ export default function InterviewPage() {
             if (val === null || val === undefined) return "";
             if (typeof val === "string") return val.trim();
 
-            // format objects as bold key-value pairs
             if (typeof val === "object" && !Array.isArray(val)) {
               return Object.entries(val)
                 .map(([k, v]) => {
@@ -166,7 +189,6 @@ export default function InterviewPage() {
                 .join('\n\n');
             }
 
-            // format arrays as bullet lists
             if (Array.isArray(val)) {
               return val.map(item => {
                 const itemStr = typeof item === 'string' ? item : JSON.stringify(item);
@@ -204,14 +226,13 @@ export default function InterviewPage() {
         if (data.interviewComplete) {
           setTimeout(() => {
             router.push(`/dashboard/results/${params.id}`);
-          }, 2000);
+          }, 4000);
           setMessages((prev) => [
             ...prev,
             {
               id: "complete",
               role: "ai",
-              content:
-                "🎉 **Interview complete!** Redirecting to your results...",
+              content: "Interview complete! Redirecting to your results now...",
               type: "summary",
             },
           ]);
@@ -251,7 +272,7 @@ export default function InterviewPage() {
             {
               id: `err-${Date.now()}`,
               role: "ai",
-              content: `⚠️ Error: ${message}. Please try again.`,
+              content: `Error: ${message}. Please try again.`,
             },
           ];
         });
@@ -259,12 +280,13 @@ export default function InterviewPage() {
         setIsThinking(false);
       }
     },
-    [sessionData, isThinking, questionNumber, params.id, router]
+    [sessionData, isThinking, questionNumber, params.id, router, cancel]
   );
 
   const handleEndInterview = useCallback(async () => {
     if (!sessionData || isEnding) return;
     setIsEnding(true);
+    cancel();
 
     try {
       const res = await fetch(`/api/interview/${params.id}/end`, {
@@ -279,7 +301,7 @@ export default function InterviewPage() {
     } catch {
       setIsEnding(false);
     }
-  }, [sessionData, isEnding, params.id, router]);
+  }, [sessionData, isEnding, params.id, router, cancel]);
 
   if (!isLoaded) {
     return (
@@ -300,9 +322,13 @@ export default function InterviewPage() {
         isEnding={isEnding}
       />
 
-      <ChatMessages messages={messages} isThinking={isThinking} />
+      <ChatMessages messages={messages} isThinking={isThinking || isSpeaking} />
 
-      <ChatInput onSend={handleSendAnswer} disabled={isThinking} />
+      <ChatInput 
+        onSend={handleSendAnswer} 
+        disabled={isThinking || isSpeaking} 
+        interactionType={interactionType}
+      />
     </div>
   );
 }
