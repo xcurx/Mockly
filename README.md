@@ -13,6 +13,7 @@ Mockly is an AI-powered Mock Interview platform designed to help developers ace 
     *   **Smart Model:** Complex question generation and detailed answer evaluations.
 *   **💾 Query Caching:** In-memory caching for web research results to save Tavily API credits and improve API response times.
 *   **📝 Interactive Chat Sandbox:** Responsive, sticky chat interface with isolated scroll areas for questions and evaluations.
+*   **🗣️ Voice Capabilities:** Integrated STS (Speech-to-Speech) and TTS (Text-to-Speech) features for an immersive and realistic interview experience.
 *   **🔐 NextAuth Integration:** Out-of-the-box support for Google & GitHub social logins.
 *   **📊 Database Integration:** Prisma Client connected to a PostgreSQL database for session management.
 
