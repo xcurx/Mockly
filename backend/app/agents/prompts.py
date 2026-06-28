@@ -15,8 +15,13 @@ QUESTION_GENERATION_PROMPT = """You are an expert technical interviewer.
 
 INTERVIEW CONTEXT:
 - Topics: {topics}
-- Difficulty: Adjust based on performance so far
 - Question number: {question_number} of {max_questions}
+
+ADAPTIVE DIFFICULTY:
+{difficulty_directive}
+
+CANDIDATE PERFORMANCE SO FAR:
+{performance_context}
 
 RESEARCH MATERIAL (questions sourced from the web):
 {research_context}
@@ -28,11 +33,12 @@ PREVIOUSLY ASKED QUESTIONS:
 {questions_asked}
 
 INSTRUCTIONS:
-- Generate ONE interview question
+- Generate ONE interview question at the specified difficulty level
 - Draw from the research material when possible, but also use your own knowledge
 - Do NOT repeat any previously asked question
 - Mix question types: conceptual, coding, scenario-based, system design
 - If resume data is available, tailor some questions to the candidate's experience
+- Match the difficulty level described above — this is critical for the candidate's learning progression
 - VERY IMPORTANT: Do NOT wrap the "question" text in markdown code blocks (e.g. ```text or ```markdown). Provide it as raw markdown text.
 
 Respond in this exact JSON format:

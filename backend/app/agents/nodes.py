@@ -61,13 +61,69 @@ def research_node(state: dict) -> dict:
 
     return {"research_context": research_context}
 
+def compute_adaptive_difficulty(evaluation_history: list[dict]) -> tuple[str, str]:
+    if not evaluation_history:
+        return (
+            "Target difficulty: MEDIUM. This is the first question — start at a moderate level.",
+            "No answers yet — this is the beginning of the interview."
+        )
+    
+    # use the last 3 scores for a rolling window
+    recent_window = 3
+    recent_evals = evaluation_history[-recent_window:]
+    recent_scores = [e.get("score", 5) for e in recent_evals]
+    avg_score = sum(recent_scores) / len(recent_scores)
+    
+    all_scores = [e.get("score", 5) for e in evaluation_history]
+    overall_avg = sum(all_scores) / len(all_scores)
+    
+    # build performance context
+    score_trend = ", ".join([f"Q{len(evaluation_history) - len(recent_scores) + i + 1}: {s}/10" for i, s in enumerate(recent_scores)])
+    performance_context = (
+        f"Recent scores (last {len(recent_scores)}): {score_trend}\n"
+        f"Recent average: {avg_score:.1f}/10 | Overall average: {overall_avg:.1f}/10"
+    )
+    
+    if avg_score >= 8.0:
+        difficulty_directive = (
+            "Target difficulty: HARD. The candidate is performing exceptionally well "
+            f"(avg {avg_score:.1f}/10). Challenge them with advanced, nuanced questions "
+            "that test deep understanding — edge cases, trade-offs, and system-level thinking."
+        )
+    elif avg_score >= 6.0:
+        difficulty_directive = (
+            "Target difficulty: MEDIUM. The candidate is performing solidly "
+            f"(avg {avg_score:.1f}/10). Ask well-rounded questions that test core concepts "
+            "with some depth. Gradually introduce more challenging aspects."
+        )
+    elif avg_score >= 4.0:
+        difficulty_directive = (
+            "Target difficulty: EASY-MEDIUM. The candidate is struggling somewhat "
+            f"(avg {avg_score:.1f}/10). Ask clearer, more focused questions that build "
+            "confidence while still testing important fundamentals."
+        )
+    else:
+        difficulty_directive = (
+            "Target difficulty: EASY. The candidate is having significant difficulty "
+            f"(avg {avg_score:.1f}/10). Ask foundational questions with clear scope. "
+            "Focus on core concepts to help them rebuild confidence."
+        )
+    
+    return difficulty_directive, performance_context
+
 def generate_question_node(state: dict) -> dict:
     llm = get_smart_llm()
+
+    difficulty_directive, performance_context = compute_adaptive_difficulty(
+        state.get("evaluation_history", [])
+    )
 
     prompt = QUESTION_GENERATION_PROMPT.format(
         topics=", ".join(state["topics"] + state.get("custom_topics", [])),
         question_number=state["current_question_number"],
         max_questions=state["max_questions"],
+        difficulty_directive=difficulty_directive,
+        performance_context=performance_context,
         research_context=state.get("research_context", "No research available"),
         resume_data=json.dumps(state.get("resume_data")) if state.get("resume_data") else "No provided",
         questions_asked=json.dumps([q.get("question", "") for q in state.get("questions_asked", [])]),
