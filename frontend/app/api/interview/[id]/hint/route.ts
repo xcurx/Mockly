@@ -28,6 +28,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     try {
         const result = await requestHint(interviewState, hintsUsed)
+        
+        if (result.hint?.hint) {
+            const latestExchange = await prisma.interviewExchange.findFirst({
+                where: { interviewId: id },
+                orderBy: { createdAt: "desc" }
+            })
+            
+            if (latestExchange) {
+                await prisma.interviewExchange.update({
+                    where: { id: latestExchange.id },
+                    data: {
+                        hints: {
+                            push: result.hint.hint
+                        }
+                    }
+                })
+            }
+        }
+        
         return NextResponse.json(result);
     } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";

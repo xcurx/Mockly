@@ -47,36 +47,13 @@ export default function InterviewPage() {
     if (stored) {
       const data = JSON.parse(stored) as InterviewSessionData;
       setSessionData(data);
-      setQuestionNumber(data.questionNumber);
-
-      const state = data.interviewState as Record<string, unknown>;
-      setMaxQuestions((state.max_questions as number) || 10);
-      setMode((state.mode as string)?.toUpperCase() || "TRAINING");
-      setInteractionType((state.interaction_type as string)?.toUpperCase() || "TEXT");
-      setTopics((state.topics as string[]) || []);
-
       if (data.timeLimitSeconds) {
         setTimeLimitSeconds(data.timeLimitSeconds);
         setTimeRemaining(data.timeLimitSeconds);
       }
-
-      const questionText =
-        typeof data.currentQuestion === "string"
-          ? data.currentQuestion
-          : data.currentQuestion?.question || "Let's begin the interview.";
-
-      setMessages([
-        {
-          id: "q-1",
-          role: "ai",
-          content: questionText,
-          type: "question",
-        },
-      ]);
-      setIsLoaded(true);
-    } else {
-      loadFromApi();
     }
+
+    loadFromApi();
     
     return () => {
       cancel();
@@ -136,6 +113,18 @@ export default function InterviewPage() {
           content: exchange.question,
           type: "question",
         });
+
+        if (exchange.hints && Array.isArray(exchange.hints)) {
+          exchange.hints.forEach((hint: string, index: number) => {
+            msgs.push({
+              id: `hint-${exchange.questionNumber}-${index + 1}`,
+              role: "ai",
+              content: hint,
+              type: "hint",
+            });
+          });
+        }
+
         if (exchange.userAnswer) {
           msgs.push({
             id: `a-${exchange.questionNumber}`,
@@ -162,6 +151,14 @@ export default function InterviewPage() {
 
       setMessages(msgs);
       setQuestionNumber(interview.exchanges.length);
+      
+      const lastExchange = interview.exchanges[interview.exchanges.length - 1];
+      if (lastExchange && lastExchange.hints && Array.isArray(lastExchange.hints)) {
+        setHintsUsed(lastExchange.hints.length);
+      } else {
+        setHintsUsed(0);
+      }
+
       setIsLoaded(true);
     } catch {
       router.push("/dashboard");

@@ -105,6 +105,7 @@ model InterviewExchange {
   questionSource String?
   userAnswer     String?
   evaluation     Json?
+  hints          String[]  @default([])
   interview      Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
   createdAt      DateTime  @default(now())
 }
