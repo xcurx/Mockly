@@ -8,6 +8,7 @@ from app.agents.prompts import (
     EVALUATE_ANSWER_TRAINING_PROMPT,
     EVALUATE_ANSWER_REALISTIC_PROMPT,
     SUMMARY_PROMPT,
+    HINT_GENERATION_PROMPT,
 )
 from app.tools.web_search import search_interview_questions
 
@@ -173,10 +174,14 @@ def evaluate_answer_node(state: dict) -> dict:
             break
     
     if state["mode"] == "training":
+        hints_used = state.get("current_hints_used", 0)
+        hints_note = "Note: No hints were used, score normally." if hints_used == 0 else f"Note: {hints_used} hint(s) were used. The maximum score for this question is {10 - hints_used}."
         prompt = EVALUATE_ANSWER_TRAINING_PROMPT.format(
             question=current_q.get("question", ""),
             expected_points=json.dumps(current_q.get("expected_answer_points", [])),
             user_answer=user_answer,
+            hints_used=hints_used,
+            hints_note=hints_note
         )
     else:
         prompt = EVALUATE_ANSWER_REALISTIC_PROMPT.format(
@@ -239,6 +244,49 @@ def evaluate_answer_node(state: dict) -> dict:
         "interview_complete": is_complete,
         "messages": [AIMessage(content=ai_response)]
     }
+
+def generate_hint_node(state: dict, hints_used: int) -> dict:
+    llm = get_smart_llm()
+    current_q = state.get("current_question", {})
+    
+    max_hints = 3
+    if hints_used >= max_hints:
+        return {"current_hint": {"hint": "No more hints available.", "hint_level": "max"}}
+
+    previous_hints_text = "None yet." if hints_used == 0 else f"{hints_used} hint(s) already given."
+
+    prompt = HINT_GENERATION_PROMPT.format(
+        question=current_q.get("question", ""),
+        expected_points=json.dumps(current_q.get("expected_answer_points", [])),
+        hint_number=hints_used + 1,
+        max_hints=max_hints,
+        previous_hints=previous_hints_text
+    )
+
+    response = llm.invoke([
+        SystemMessage(content="You are an expert interviewer. Always respond with valid JSON."),
+        HumanMessage(content=prompt)
+    ])
+
+    from langchain_core.utils.json import parse_json_markdown
+    try:
+        hint_data = parse_json_markdown(response.content)
+    except Exception:
+        import json_repair
+        try:
+            repaired = json_repair.repair_json(response.content, return_objects=True)
+            if isinstance(repaired, dict):
+                hint_data = repaired
+            else:
+                raise ValueError("Repaired JSON is not a dict")
+        except Exception:
+            hint_data = {
+                "hint": "Try to think about the core concepts related to this topic.",
+                "hint_level": "nudge"
+            }
+            
+    return {"current_hint": hint_data}
+
 
 def summarize_node(state: dict) -> dict:
     llm = get_fast_llm()

@@ -56,15 +56,17 @@ EVALUATE_ANSWER_TRAINING_PROMPT = """You are an expert technical interviewer in 
 QUESTION ASKED: {question}
 EXPECTED KEY POINTS: {expected_points}
 CANDIDATE'S ANSWER: {user_answer}
+HINTS USED: {hints_used} (each hint used should reduce the maximum possible score by 1 point)
 
 Evaluate the answer thoroughly:
-1. Score from 0-10
+1. Score from 0-10 (subtract {hints_used} point(s) from the max possible score for hints used, minimum 0)
 2. What the candidate got RIGHT
 3. What was MISSED or WRONG
 4. The IDEAL answer
 5. TIPS for improvement
 
 Be encouraging but honest. This is a learning experience.
+{hints_note}
 
 IMPORTANT JSON RULES:
 - Your response MUST be strictly valid JSON.
@@ -136,3 +138,29 @@ Respond in this exact JSON format:
     "recommendations": ["what to study", "what to practice"],
     "encouragement": "A motivating closing message"
 }}"""
+
+
+HINT_GENERATION_PROMPT = """You are an expert technical interviewer providing progressive hints in TRAINING mode.
+
+QUESTION: {question}
+EXPECTED KEY POINTS: {expected_points}
+HINT NUMBER: {hint_number} of {max_hints}
+
+PREVIOUSLY GIVEN HINTS:
+{previous_hints}
+
+INSTRUCTIONS:
+- Generate exactly ONE hint based on the hint number:
+  - Hint 1: A gentle conceptual nudge. Point the candidate in the right direction WITHOUT revealing the answer. Think "What area should they think about?"
+  - Hint 2: A more specific clue. Narrow down the approach or mention a key concept they should consider. Think "What technique or principle applies here?"
+  - Hint 3: A very direct hint that nearly reveals the answer. Give them the key insight they need. Think "Here's the core idea..."
+- Each hint should build on previous hints, getting progressively more specific
+- Keep hints concise (1-3 sentences max)
+- Do NOT give the full answer, even in hint 3
+
+Respond in this exact JSON format:
+{{
+    "hint": "Your hint text here",
+    "hint_level": "nudge" | "clue" | "reveal"
+}}"""
+

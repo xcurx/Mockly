@@ -2,6 +2,7 @@ from app.agents.nodes import generate_question_node
 from app.agents.nodes import research_node
 from app.agents.nodes import summarize_node
 from app.agents.nodes import evaluate_answer_node
+from app.agents.nodes import generate_hint_node
 from langchain_core.messages import HumanMessage
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -24,6 +25,11 @@ class StartInterviewRequest(BaseModel):
 class AnswerRequest(BaseModel):
     user_answer: str
     interview_state: dict
+    hints_used: int = 0
+
+class HintRequest(BaseModel):
+    interview_state: dict
+    hints_used: int
 
 @interview_router.post("/start")
 async def start_interview(req: StartInterviewRequest):
@@ -60,6 +66,7 @@ async def start_interview(req: StartInterviewRequest):
 async def respond_to_answer(req: AnswerRequest):
     state = _deserialize_state(req.interview_state)
     state["messages"].append(HumanMessage(content=req.user_answer))
+    state["current_hints_used"] = req.hints_used
 
     try:
         with ThreadPoolExecutor() as executor:
@@ -112,6 +119,15 @@ async def respond_to_answer(req: AnswerRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to respond: {str(e)}")
+
+@interview_router.post("/hint")
+async def get_hint(req: HintRequest):
+    state = _deserialize_state(req.interview_state)
+    try:
+        hint_result = generate_hint_node(state, req.hints_used)
+        return {"hint": hint_result.get("current_hint")}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate hint: {str(e)}")
 
 @interview_router.post("/summarize")
 async def summarize_interview(req: AnswerRequest):

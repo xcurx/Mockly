@@ -10,7 +10,7 @@ export interface Message {
   id: string;
   role: "ai" | "user";
   content: string;
-  type?: "question" | "evaluation" | "summary";
+  type?: "question" | "evaluation" | "summary" | "hint";
 }
 
 interface ChatMessagesProps {
@@ -37,8 +37,13 @@ export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
             )}
           >
             {msg.role === "ai" && (
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/20 mt-0.5">
-                <Robot weight="duotone" className="size-4 text-purple-400" />
+              <div className={cn(
+                "flex size-7 shrink-0 items-center justify-center rounded-full border mt-0.5",
+                msg.type === "hint"
+                  ? "bg-amber-500/10 border-amber-500/20"
+                  : "bg-purple-500/10 border-purple-500/20"
+              )}>
+                <Robot weight="duotone" className={cn("size-4", msg.type === "hint" ? "text-amber-400" : "text-purple-400")} />
               </div>
             )}
 
@@ -47,7 +52,9 @@ export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
                 "max-w-[80%] rounded-lg px-3.5 py-2.5",
                 msg.role === "user"
                   ? "bg-primary text-primary-foreground text-sm leading-relaxed"
-                  : "bg-muted/50 border border-border/50"
+                  : msg.type === "hint"
+                    ? "bg-amber-500/5 border border-amber-500/20"
+                    : "bg-muted/50 border border-border/50"
               )}
             >
               {msg.role === "ai" ? (

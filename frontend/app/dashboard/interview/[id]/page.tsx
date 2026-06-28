@@ -36,6 +36,7 @@ export default function InterviewPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [timeLimitSeconds, setTimeLimitSeconds] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [hintsUsed, setHintsUsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { speak, cancel, isSpeaking } = useSpeechSynthesis();
@@ -180,6 +181,48 @@ export default function InterviewPage() {
     }
   }, [messages, isLoaded, interactionType, speak]);
 
+  const handleRequestHint = useCallback(async () => {
+    if (!sessionData || isThinking || hintsUsed >= 3) return;
+    setIsThinking(true);
+    
+    try {
+      const res = await fetch(`/api/interview/${params.id}/hint`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interviewState: sessionData.interviewState,
+          hintsUsed,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to get hint");
+      }
+
+      const data = await res.json();
+      const hintText = data.hint?.hint || "Here is a hint for you to think about.";
+
+      setMessages((prev) => [
+        ...prev,
+        { id: `hint-${questionNumber}-${hintsUsed + 1}`, role: "ai", content: hintText, type: "hint" },
+      ]);
+      setHintsUsed((prev) => prev + 1);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `err-hint-${Date.now()}`,
+          role: "ai",
+          content: `Error getting hint: ${message}. Please try again.`,
+        },
+      ]);
+    } finally {
+      setIsThinking(false);
+    }
+  }, [sessionData, isThinking, hintsUsed, params.id]);
+
   const handleSendAnswer = useCallback(
     async (answer: string) => {
       if (!sessionData || isThinking) return;
@@ -206,6 +249,7 @@ export default function InterviewPage() {
           body: JSON.stringify({
             userAnswer: answer,
             interviewState: sessionData.interviewState,
+            hintsUsed,
           }),
         });
 
@@ -290,6 +334,7 @@ export default function InterviewPage() {
             { id: `q-${nextQNum}`, role: "ai", content: qText, type: "question" },
           ]);
           setQuestionNumber(nextQNum);
+          setHintsUsed(0);
 
           setSessionData({
             interviewState: data.interviewState,
@@ -329,7 +374,7 @@ export default function InterviewPage() {
         setIsThinking(false);
       }
     },
-    [sessionData, isThinking, questionNumber, params.id, router, cancel, timeLimitSeconds]
+    [sessionData, isThinking, questionNumber, params.id, router, cancel, timeLimitSeconds, hintsUsed]
   );
 
   // auto-submit when timer expires
@@ -385,10 +430,14 @@ export default function InterviewPage() {
 
       <ChatMessages messages={messages} isThinking={isThinking || isSpeaking} />
 
-      <ChatInput 
-        onSend={handleSendAnswer} 
-        disabled={isThinking || isSpeaking} 
+      <ChatInput
+        onSend={handleSendAnswer}
+        disabled={isThinking || isEnding || !isLoaded}
+        placeholder={isSpeaking ? "Speaking..." : "Type your answer..."}
         interactionType={interactionType}
+        onRequestHint={handleRequestHint}
+        hintsUsed={hintsUsed}
+        mode={mode}
       />
     </div>
   );

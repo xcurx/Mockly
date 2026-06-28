@@ -32,12 +32,14 @@ export async function startInterview(config: {
 
 export async function sendAnswer(
   userAnswer: string,
-  interviewState: Record<string, unknown>
+  interviewState: Record<string, unknown>,
+  hintsUsed: number = 0
 ) {
   try {
     const { data } = await axios.post(`${API_URL}/api/interview/respond`, {
       user_answer: userAnswer,
       interview_state: interviewState,
+      hints_used: hintsUsed,
     });
     return data;
   } catch (error) {
@@ -63,6 +65,26 @@ export async function summarizeInterview(
     if (axios.isAxiosError(error)) {
       throw new Error(
         error.response?.data?.detail || "Failed to summarize interview"
+      );
+    }
+    throw error;
+  }
+}
+
+export async function requestHint(
+  interviewState: Record<string, unknown>,
+  hintsUsed: number
+) {
+  try {
+    const { data } = await axios.post(`${API_URL}/api/interview/hint`, {
+      interview_state: interviewState,
+      hints_used: hintsUsed,
+    });
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.detail || "Failed to request hint"
       );
     }
     throw error;

@@ -11,6 +11,9 @@ interface ChatInputProps {
   disabled?: boolean;
   placeholder?: string;
   interactionType?: string;
+  onRequestHint?: () => void;
+  hintsUsed?: number;
+  mode?: string;
 }
 
 export function ChatInput({
@@ -18,6 +21,9 @@ export function ChatInput({
   disabled = false,
   placeholder = "Type your answer...",
   interactionType = "TEXT",
+  onRequestHint,
+  hintsUsed = 0,
+  mode = "TRAINING",
 }: ChatInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -140,8 +146,21 @@ export function ChatInput({
 
   // text / hybrid Mode
   return (
-    <div className="shrink-0 border-t border-border/50 bg-background/80 backdrop-blur-sm py-3">
-      <div className="max-w-2xl mx-auto flex gap-2 items-end px-4 md:px-0">
+    <div className="shrink-0 border-t border-border/50 bg-background/80 backdrop-blur-sm py-3 flex flex-col gap-2">
+      {onRequestHint && mode === "TRAINING" && hintsUsed < 3 && (
+        <div className="max-w-2xl mx-auto w-full px-4 md:px-0 flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRequestHint}
+            disabled={disabled}
+            className="text-xs h-7 text-amber-500 border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-600"
+          >
+            Need a hint? ({3 - hintsUsed} left)
+          </Button>
+        </div>
+      )}
+      <div className="max-w-2xl mx-auto w-full flex gap-2 items-end px-4 md:px-0">
         <Textarea
           ref={textareaRef}
           value={value}
