@@ -85,6 +85,7 @@ model Interview {
   mode            InterviewMode
   interactionType InteractionType
   maxQuestions    Int                 @default(10)
+  timeLimitSeconds Int?
   status          InterviewStatus     @default(IN_PROGRESS)
   overallScore    Float?
   summary         Json?

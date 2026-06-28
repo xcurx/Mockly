@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         )
     }
 
-    const { topics, customTopics, mode, interactionType, maxQuestions , resumeId} = await req.json()
+    const { topics, customTopics, mode, interactionType, maxQuestions, timeLimitSeconds, resumeId} = await req.json()
     let resumeData: Record<string, unknown> | null = null;
     if (resumeId) {
         const resume = await prisma.resume.findUnique({
@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
             mode,
             interactionType,
             maxQuestions: maxQuestions || 10,
+            timeLimitSeconds: timeLimitSeconds || null,
             resumeId: resumeId || null
         }
     })

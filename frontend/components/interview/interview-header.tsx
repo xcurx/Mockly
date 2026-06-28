@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Timer, SignOut, Hash } from "@phosphor-icons/react";
+import { Timer, SignOut, Hash, HourglassHigh } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 interface InterviewHeaderProps {
@@ -13,6 +13,8 @@ interface InterviewHeaderProps {
   topics: string[];
   onEndInterview: () => void;
   isEnding: boolean;
+  timeRemaining?: number | null;
+  timeLimitSeconds?: number | null;
 }
 
 export function InterviewHeader({
@@ -22,20 +24,38 @@ export function InterviewHeader({
   topics,
   onEndInterview,
   isEnding,
+  timeRemaining,
+  timeLimitSeconds,
 }: InterviewHeaderProps) {
   const [elapsed, setElapsed] = useState(0);
   const progressPercent = (questionNumber / maxQuestions) * 100;
 
+  const hasTimer = timeLimitSeconds != null && timeLimitSeconds > 0;
+
   useEffect(() => {
+    if (hasTimer) return; // don't track elapsed when countdown is active
     const interval = setInterval(() => setElapsed((t) => t + 1), 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [hasTimer]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
+
+  // timer urgency levels
+  const isUrgent = hasTimer && timeRemaining != null && timeRemaining <= 30;
+  const isWarning = hasTimer && timeRemaining != null && timeRemaining <= 60 && !isUrgent;
+  const isExpired = hasTimer && timeRemaining != null && timeRemaining === 0;
+
+  const timerColorClass = isExpired
+    ? "text-red-500"
+    : isUrgent
+      ? "text-red-400 animate-pulse"
+      : isWarning
+        ? "text-amber-400"
+        : "text-muted-foreground";
 
   return (
     <div className="shrink-0 border-b border-border/50 bg-background/80 backdrop-blur-sm">
@@ -63,10 +83,17 @@ export function InterviewHeader({
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <span className="flex items-center gap-1 text-xs text-muted-foreground tabular-nums">
-            <Timer weight="duotone" className="size-3.5" />
-            {formatTime(elapsed)}
-          </span>
+          {hasTimer ? (
+            <span className={`flex items-center gap-1 text-xs tabular-nums font-medium ${timerColorClass}`}>
+              <HourglassHigh weight={isUrgent ? "fill" : "duotone"} className="size-3.5" />
+              {isExpired ? "0:00" : formatTime(timeRemaining ?? 0)}
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground tabular-nums">
+              <Timer weight="duotone" className="size-3.5" />
+              {formatTime(elapsed)}
+            </span>
+          )}
 
           <Button
             variant="destructive"
@@ -85,3 +112,4 @@ export function InterviewHeader({
     </div>
   );
 }
+

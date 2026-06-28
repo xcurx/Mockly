@@ -9,6 +9,7 @@ import { TopicSelector } from "@/components/setup/topic-selector";
 import { ModeSelector } from "@/components/setup/mode-selector";
 import { InteractionTypeSelector } from "@/components/setup/interaction-type-selector";
 import { QuestionCountSlider } from "@/components/setup/question-count-slider";
+import { TimerSelector } from "@/components/setup/timer-selector";
 import { ResumeUpload } from "@/components/setup/resume-upload";
 import { Rocket, SpinnerGap, Warning } from "@phosphor-icons/react";
 
@@ -20,6 +21,7 @@ export default function SetupPage() {
   const [mode, setMode] = useState("TRAINING");
   const [interactionType, setInteractionType] = useState("TEXT");
   const [maxQuestions, setMaxQuestions] = useState(10);
+  const [timeLimitSeconds, setTimeLimitSeconds] = useState<number | null>(null);
   const [resumeId, setResumeId] = useState<string | null>(null);
   const [resumeData, setResumeData] = useState<Record<string, unknown> | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -83,6 +85,7 @@ export default function SetupPage() {
           mode,
           interactionType,
           maxQuestions,
+          timeLimitSeconds,
           resumeId,
         }),
       });
@@ -100,6 +103,7 @@ export default function SetupPage() {
           interviewState: data.interviewState,
           currentQuestion: data.question,
           questionNumber: 1,
+          timeLimitSeconds,
         })
       );
 
@@ -160,6 +164,10 @@ export default function SetupPage() {
           <Separator className="opacity-50" />
 
           <QuestionCountSlider value={maxQuestions} onChange={setMaxQuestions} />
+
+          <Separator className="opacity-50" />
+
+          <TimerSelector value={timeLimitSeconds} onChange={setTimeLimitSeconds} />
 
           <Separator className="opacity-50" />
 

@@ -17,6 +17,7 @@ interface InterviewSessionData {
     topic?: string;
   };
   questionNumber: number;
+  timeLimitSeconds?: number | null;
 }
 
 export default function InterviewPage() {
@@ -33,6 +34,9 @@ export default function InterviewPage() {
   const [isThinking, setIsThinking] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [timeLimitSeconds, setTimeLimitSeconds] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { speak, cancel, isSpeaking } = useSpeechSynthesis();
   const spokenMessagesRef = useRef<Set<string>>(new Set());
@@ -49,6 +53,11 @@ export default function InterviewPage() {
       setMode((state.mode as string)?.toUpperCase() || "TRAINING");
       setInteractionType((state.interaction_type as string)?.toUpperCase() || "TEXT");
       setTopics((state.topics as string[]) || []);
+
+      if (data.timeLimitSeconds) {
+        setTimeLimitSeconds(data.timeLimitSeconds);
+        setTimeRemaining(data.timeLimitSeconds);
+      }
 
       const questionText =
         typeof data.currentQuestion === "string"
@@ -68,8 +77,35 @@ export default function InterviewPage() {
       loadFromApi();
     }
     
-    return () => cancel();
+    return () => {
+      cancel();
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [params.id, cancel]);
+
+  // countdown timer logic
+  useEffect(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (timeLimitSeconds == null || timeRemaining == null || isThinking) return;
+
+    timerRef.current = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev == null || prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [timeLimitSeconds, timeRemaining === null, isThinking]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadFromApi = async () => {
     try {
@@ -149,6 +185,12 @@ export default function InterviewPage() {
       if (!sessionData || isThinking) return;
       
       cancel();
+
+      // stop the timer and record time taken
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
 
       const userMsgId = `a-${questionNumber}`;
       setMessages((prev) => [
@@ -253,6 +295,7 @@ export default function InterviewPage() {
             interviewState: data.interviewState,
             currentQuestion: data.question,
             questionNumber: nextQNum,
+            timeLimitSeconds,
           });
           sessionStorage.setItem(
             `interview-${params.id}`,
@@ -260,8 +303,14 @@ export default function InterviewPage() {
               interviewState: data.interviewState,
               currentQuestion: data.question,
               questionNumber: nextQNum,
+              timeLimitSeconds,
             })
           );
+
+          // reset the countdown for the next question
+          if (timeLimitSeconds) {
+            setTimeRemaining(timeLimitSeconds);
+          }
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Something went wrong";
@@ -280,8 +329,18 @@ export default function InterviewPage() {
         setIsThinking(false);
       }
     },
-    [sessionData, isThinking, questionNumber, params.id, router, cancel]
+    [sessionData, isThinking, questionNumber, params.id, router, cancel, timeLimitSeconds]
   );
+
+  // auto-submit when timer expires
+  useEffect(() => {
+    if (timeRemaining === 0 && timeLimitSeconds && !isThinking && sessionData) {
+      if (mode === "REALISTIC") {
+        handleSendAnswer("(Time expired — no answer provided)");
+      }
+      // in Training mode, just stop the timer — don't force submit
+    }
+  }, [timeRemaining]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleEndInterview = useCallback(async () => {
     if (!sessionData || isEnding) return;
@@ -320,6 +379,8 @@ export default function InterviewPage() {
         topics={topics}
         onEndInterview={handleEndInterview}
         isEnding={isEnding}
+        timeRemaining={timeRemaining}
+        timeLimitSeconds={timeLimitSeconds}
       />
 
       <ChatMessages messages={messages} isThinking={isThinking || isSpeaking} />
