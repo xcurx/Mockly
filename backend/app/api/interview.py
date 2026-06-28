@@ -10,7 +10,6 @@ from fastapi import APIRouter
 from app.agents.graph import interview_graph
 from app.utils.state_utils import _serialize_state, _deserialize_state
 from concurrent.futures import ThreadPoolExecutor
-import asyncio
 
 interview_router = APIRouter()
 
@@ -21,6 +20,7 @@ class StartInterviewRequest(BaseModel):
     interaction_type: str
     max_questions: int
     resume_data: dict | None = None
+    bookmarked_questions: list[str] = []
 
 class AnswerRequest(BaseModel):
     user_answer: str
@@ -41,6 +41,7 @@ async def start_interview(req: StartInterviewRequest):
         "interaction_type": req.interaction_type,
         "max_questions": req.max_questions,
         "resume_data": req.resume_data,
+        "bookmarked_questions": req.bookmarked_questions,
         "research_context": "",
         "questions_asked": [],
         "current_question_number": 1,

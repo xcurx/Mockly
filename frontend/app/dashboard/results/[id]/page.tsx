@@ -6,14 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { 
-  Trophy, 
   Target, 
   Lightbulb, 
   WarningCircle, 
   ArrowLeft,
   ChartLineUp
 } from "@phosphor-icons/react/dist/ssr";
-import { Progress } from "@/components/ui/progress";
+import { BookmarkButton } from "@/components/dashboard/bookmark-button";
 
 export default async function ResultsPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -196,11 +195,18 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
                 <div className="flex flex-col md:flex-row">
                   {/* Question Side */}
                   <div className="md:w-1/2 p-5 border-b md:border-b-0 md:border-r border-border/50 bg-muted/20">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="outline" className="text-[10px]">Q{exchange.questionNumber}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        Source: {exchange.questionSource === "web" ? "Web Research" : "AI Gen"}
-                      </span>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px]">Q{exchange.questionNumber}</Badge>
+                        <span className="text-xs text-muted-foreground">
+                          Source: {exchange.questionSource === "web" ? "Web Research" : "AI Gen"}
+                        </span>
+                      </div>
+                      <BookmarkButton 
+                        interviewId={exchange.interviewId} 
+                        exchangeId={exchange.id} 
+                        initialBookmarked={exchange.bookmarked} 
+                      />
                     </div>
                     <p className="text-sm font-medium leading-relaxed mb-4">
                       {exchange.question}

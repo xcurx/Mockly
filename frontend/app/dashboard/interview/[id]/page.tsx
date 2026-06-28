@@ -112,6 +112,8 @@ export default function InterviewPage() {
           role: "ai",
           content: exchange.question,
           type: "question",
+          exchangeId: exchange.id,
+          bookmarked: exchange.bookmarked,
         });
 
         if (exchange.hints && Array.isArray(exchange.hints)) {
@@ -159,6 +161,20 @@ export default function InterviewPage() {
         setHintsUsed(0);
       }
 
+      // Rehydrate sessionData if missing (e.g. opened in new tab or from history)
+      const currentStored = sessionStorage.getItem(`interview-${params.id}`);
+      if (!currentStored && interview.interviewState) {
+        const reconstructedData = {
+          interviewId: interview.id,
+          questionNumber: lastExchange ? lastExchange.questionNumber : 1,
+          interviewState: interview.interviewState,
+          currentQuestion: lastExchange ? lastExchange.question : null,
+          timeLimitSeconds: interview.timeLimitSeconds,
+        };
+        setSessionData(reconstructedData);
+        sessionStorage.setItem(`interview-${params.id}`, JSON.stringify(reconstructedData));
+      }
+
       setIsLoaded(true);
     } catch {
       router.push("/dashboard");
@@ -179,7 +195,11 @@ export default function InterviewPage() {
   }, [messages, isLoaded, interactionType, speak]);
 
   const handleRequestHint = useCallback(async () => {
-    if (!sessionData || isThinking || hintsUsed >= 3) return;
+    if (isThinking || hintsUsed >= 3) return;
+    if (!sessionData) {
+      alert("Interview session lost. Please return to the dashboard and start a new interview.");
+      return;
+    }
     setIsThinking(true);
     
     try {
@@ -222,7 +242,11 @@ export default function InterviewPage() {
 
   const handleSendAnswer = useCallback(
     async (answer: string) => {
-      if (!sessionData || isThinking) return;
+      if (isThinking) return;
+      if (!sessionData) {
+        alert("Interview session lost. Please return to the dashboard and start a new interview.");
+        return;
+      }
       
       cancel();
 
@@ -425,7 +449,7 @@ export default function InterviewPage() {
         timeLimitSeconds={timeLimitSeconds}
       />
 
-      <ChatMessages messages={messages} isThinking={isThinking || isSpeaking} />
+      <ChatMessages messages={messages} isThinking={isThinking || isSpeaking} interviewId={params.id as string} />
 
       <ChatInput
         onSend={handleSendAnswer}

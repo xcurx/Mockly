@@ -89,6 +89,7 @@ model Interview {
   status          InterviewStatus     @default(IN_PROGRESS)
   overallScore    Float?
   summary         Json?
+  interviewState  Json?
   resumeId        String?
   user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   resume          Resume?             @relation(fields: [resumeId], references: [id])
@@ -106,6 +107,7 @@ model InterviewExchange {
   userAnswer     String?
   evaluation     Json?
   hints          String[]  @default([])
+  bookmarked     Boolean   @default(false)
   interview      Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
   createdAt      DateTime  @default(now())
 }
@@ -113,6 +115,7 @@ model InterviewExchange {
 enum InterviewMode {
   TRAINING
   REALISTIC
+  REVIEW
 }
 
 enum InteractionType {

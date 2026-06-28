@@ -28,6 +28,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     try {
         const result = await sendAnswer(userAnswer, interviewState, hintsUsed)
+        
+        await prisma.interview.update({
+            where: { id },
+            data: { interviewState: result.interview_state }
+        })
         const exchangeCount = await prisma.interviewExchange.count({
             where: {interviewId: id}
         })

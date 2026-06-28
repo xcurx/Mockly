@@ -5,6 +5,7 @@ from app.config import settings
 from app.agents.prompts import (
     RESEARCH_QUERY_PROMPT,
     QUESTION_GENERATION_PROMPT,
+    REVIEW_QUESTION_PROMPT,
     EVALUATE_ANSWER_TRAINING_PROMPT,
     EVALUATE_ANSWER_REALISTIC_PROMPT,
     SUMMARY_PROMPT,
@@ -115,20 +116,33 @@ def compute_adaptive_difficulty(evaluation_history: list[dict]) -> tuple[str, st
 def generate_question_node(state: dict) -> dict:
     llm = get_smart_llm()
 
-    difficulty_directive, performance_context = compute_adaptive_difficulty(
-        state.get("evaluation_history", [])
-    )
+    mode = state.get("mode", "TRAINING")
+    
+    if mode == "REVIEW":
+        bookmarked_questions = state.get("bookmarked_questions", [])
+        current_idx = state["current_question_number"] - 1
+        
+        if current_idx < len(bookmarked_questions):
+            bookmarked_q = bookmarked_questions[current_idx]
+        else:
+            bookmarked_q = "Please generate a general technical question as fallback."
+            
+        prompt = REVIEW_QUESTION_PROMPT.format(bookmarked_question=bookmarked_q)
+    else:
+        difficulty_directive, performance_context = compute_adaptive_difficulty(
+            state.get("evaluation_history", [])
+        )
 
-    prompt = QUESTION_GENERATION_PROMPT.format(
-        topics=", ".join(state["topics"] + state.get("custom_topics", [])),
-        question_number=state["current_question_number"],
-        max_questions=state["max_questions"],
-        difficulty_directive=difficulty_directive,
-        performance_context=performance_context,
-        research_context=state.get("research_context", "No research available"),
-        resume_data=json.dumps(state.get("resume_data")) if state.get("resume_data") else "No provided",
-        questions_asked=json.dumps([q.get("question", "") for q in state.get("questions_asked", [])]),
-    )
+        prompt = QUESTION_GENERATION_PROMPT.format(
+            topics=", ".join(state["topics"] + state.get("custom_topics", [])),
+            question_number=state["current_question_number"],
+            max_questions=state["max_questions"],
+            difficulty_directive=difficulty_directive,
+            performance_context=performance_context,
+            research_context=state.get("research_context", "No research available"),
+            resume_data=json.dumps(state.get("resume_data")) if state.get("resume_data") else "No provided",
+            questions_asked=json.dumps([q.get("question", "") for q in state.get("questions_asked", [])]),
+        )
 
     response = llm.invoke([
         SystemMessage(content="You are an expert interviewer. Always respond with valid JSON."),
@@ -173,7 +187,7 @@ def evaluate_answer_node(state: dict) -> dict:
             user_answer = msg.content
             break
     
-    if state["mode"] == "training":
+    if state["mode"] == "TRAINING":
         hints_used = state.get("current_hints_used", 0)
         hints_note = "Note: No hints were used, score normally." if hints_used == 0 else f"Note: {hints_used} hint(s) were used. The maximum score for this question is {10 - hints_used}."
         prompt = EVALUATE_ANSWER_TRAINING_PROMPT.format(
@@ -212,7 +226,7 @@ def evaluate_answer_node(state: dict) -> dict:
                 "feedback": "⚠️ The AI generated an extremely long response that was cut off. Please continue to the next question.",
             }
     
-    if state["mode"] == "training":
+    if state["mode"] == "TRAINING":
         ai_response = evaluation.get("feedback", "")
         if not isinstance(ai_response, str):
             ai_response = json.dumps(ai_response, indent=2)

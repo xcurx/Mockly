@@ -9,6 +9,7 @@ export async function startInterview(config: {
   interactionType: string;
   maxQuestions: number;
   resumeData?: Record<string, unknown> | null;
+  bookmarked_questions?: string[];
 }) {
   try {
     const { data } = await axios.post(`${API_URL}/api/interview/start`, {
@@ -18,6 +19,7 @@ export async function startInterview(config: {
       interaction_type: config.interactionType,
       max_questions: config.maxQuestions,
       resume_data: config.resumeData || null,
+      bookmarked_questions: config.bookmarked_questions || [],
     });
     return data;
   } catch (error) {

@@ -5,20 +5,24 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Robot, User, CircleNotch } from "@phosphor-icons/react";
 import { MarkdownRenderer } from "@/components/interview/markdown-renderer";
+import { BookmarkButton } from "@/components/dashboard/bookmark-button";
 
 export interface Message {
   id: string;
   role: "ai" | "user";
   content: string;
   type?: "question" | "evaluation" | "summary" | "hint";
+  exchangeId?: string;
+  bookmarked?: boolean;
 }
 
 interface ChatMessagesProps {
   messages: Message[];
   isThinking: boolean;
+  interviewId?: string;
 }
 
-export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
+export function ChatMessages({ messages, isThinking, interviewId }: ChatMessagesProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,7 +62,18 @@ export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
               )}
             >
               {msg.role === "ai" ? (
-                <MarkdownRenderer content={msg.content?.trim()} />
+                <div className="text-foreground/90 space-y-2">
+                  <MarkdownRenderer content={msg.content} />
+                  {msg.type === "question" && msg.exchangeId && interviewId && (
+                    <div className="flex justify-end pt-2 border-t border-border/50 mt-3">
+                      <BookmarkButton 
+                        interviewId={interviewId} 
+                        exchangeId={msg.exchangeId} 
+                        initialBookmarked={msg.bookmarked || false} 
+                      />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <span>{msg.content}</span>
               )}

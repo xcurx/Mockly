@@ -42,10 +42,15 @@ export async function POST(req: NextRequest) {
         const result = await startInterview({
             topics,
             customTopics: customTopics || [],
-            mode: mode.toLowerCase(),
+            mode,
             interactionType,
             maxQuestions: maxQuestions || 10,
             resumeData,
+        })
+
+        await prisma.interview.update({
+            where: { id: interview.id },
+            data: { interviewState: result.interview_state }
         })
 
         if (result.question) {

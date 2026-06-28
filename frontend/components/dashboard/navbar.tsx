@@ -19,6 +19,7 @@ import {
   ClockCounterClockwise,
   SignOut,
   Plus,
+  BookmarkSimple,
 } from "@phosphor-icons/react";
 
 interface NavbarProps {
@@ -32,6 +33,7 @@ interface NavbarProps {
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: House },
   { href: "/dashboard/history", label: "History", icon: ClockCounterClockwise },
+  { href: "/dashboard/bookmarks", label: "Bookmarks", icon: BookmarkSimple },
 ];
 
 export function Navbar({ user }: NavbarProps) {

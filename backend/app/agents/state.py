@@ -9,9 +9,10 @@ class InterviewState(TypedDict):
 
     topics: list[str]
     custom_topic: list[str]
-    mode: Literal["training", "realistic"]
+    mode: Literal["TRAINING", "REALISTIC", "REVIEW"]
     interaction_type: str
     max_questions: int
+    bookmarked_questions: Optional[list[str]]
 
     questions_asked: list[dict]
     current_question_number: int

@@ -50,6 +50,27 @@ Respond in this exact JSON format:
     "topic": "which topic this relates to"
 }}"""
 
+REVIEW_QUESTION_PROMPT = """You are an expert technical interviewer conducting a REVIEW session.
+The candidate struggled with the following question in a previous interview.
+Your task is to ask exactly this question (or a very slight variation if it improves clarity), and generate the expected answer points.
+
+QUESTION TO REVIEW:
+{bookmarked_question}
+
+INSTRUCTIONS:
+- Generate ONE interview question based on the question above.
+- Ensure the core concept being tested is identical.
+- VERY IMPORTANT: Do NOT wrap the "question" text in markdown code blocks (e.g. ```text or ```markdown). Provide it as raw markdown text.
+
+Respond in this exact JSON format:
+{{
+    "question": "Your interview question here",
+    "expected_answer_points": ["key point 1", "key point 2", "key point 3"],
+    "difficulty": "medium",
+    "source": "llm",
+    "topic": "review"
+}}"""
+
 
 EVALUATE_ANSWER_TRAINING_PROMPT = """You are an expert technical interviewer in TRAINING mode.
 
