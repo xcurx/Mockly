@@ -116,6 +116,7 @@ enum InterviewMode {
   TRAINING
   REALISTIC
   REVIEW
+  BEHAVIORAL
 }
 
 enum InteractionType {

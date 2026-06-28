@@ -147,7 +147,7 @@ export function ChatInput({
   // text / hybrid Mode
   return (
     <div className="shrink-0 border-t border-border/50 bg-background/80 backdrop-blur-sm py-3 flex flex-col gap-2">
-      {onRequestHint && mode === "TRAINING" && hintsUsed < 3 && (
+      {onRequestHint && (mode === "TRAINING" || mode === "BEHAVIORAL") && hintsUsed < 3 && (
         <div className="max-w-2xl mx-auto w-full px-4 md:px-0 flex justify-end">
           <Button
             variant="outline"

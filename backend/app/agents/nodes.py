@@ -6,8 +6,10 @@ from app.agents.prompts import (
     RESEARCH_QUERY_PROMPT,
     QUESTION_GENERATION_PROMPT,
     REVIEW_QUESTION_PROMPT,
+    BEHAVIORAL_QUESTION_PROMPT,
     EVALUATE_ANSWER_TRAINING_PROMPT,
     EVALUATE_ANSWER_REALISTIC_PROMPT,
+    EVALUATE_ANSWER_BEHAVIORAL_PROMPT,
     SUMMARY_PROMPT,
     HINT_GENERATION_PROMPT,
 )
@@ -128,6 +130,14 @@ def generate_question_node(state: dict) -> dict:
             bookmarked_q = "Please generate a general technical question as fallback."
             
         prompt = REVIEW_QUESTION_PROMPT.format(bookmarked_question=bookmarked_q)
+    elif mode == "BEHAVIORAL":
+        prompt = BEHAVIORAL_QUESTION_PROMPT.format(
+            topics=", ".join(state["topics"] + state.get("custom_topics", [])),
+            question_number=state["current_question_number"],
+            max_questions=state["max_questions"],
+            resume_data=json.dumps(state.get("resume_data")) if state.get("resume_data") else "Not provided",
+            questions_asked=json.dumps([q.get("question", "") for q in state.get("questions_asked", [])]),
+        )
     else:
         difficulty_directive, performance_context = compute_adaptive_difficulty(
             state.get("evaluation_history", [])
@@ -187,7 +197,17 @@ def evaluate_answer_node(state: dict) -> dict:
             user_answer = msg.content
             break
     
-    if state["mode"] == "TRAINING":
+    if state["mode"] == "BEHAVIORAL":
+        hints_used = state.get("current_hints_used", 0)
+        hints_note = "Note: No hints were used, score normally." if hints_used == 0 else f"Note: {hints_used} hint(s) were used. The maximum score for this question is {10 - hints_used}."
+        prompt = EVALUATE_ANSWER_BEHAVIORAL_PROMPT.format(
+            question=current_q.get("question", ""),
+            expected_points=json.dumps(current_q.get("expected_answer_points", [])),
+            user_answer=user_answer,
+            hints_used=hints_used,
+            hints_note=hints_note
+        )
+    elif state["mode"] == "TRAINING":
         hints_used = state.get("current_hints_used", 0)
         hints_note = "Note: No hints were used, score normally." if hints_used == 0 else f"Note: {hints_used} hint(s) were used. The maximum score for this question is {10 - hints_used}."
         prompt = EVALUATE_ANSWER_TRAINING_PROMPT.format(
@@ -226,10 +246,22 @@ def evaluate_answer_node(state: dict) -> dict:
                 "feedback": "⚠️ The AI generated an extremely long response that was cut off. Please continue to the next question.",
             }
     
-    if state["mode"] == "TRAINING":
+    if state["mode"] in ("TRAINING", "BEHAVIORAL"):
         ai_response = evaluation.get("feedback", "")
         if not isinstance(ai_response, str):
             ai_response = json.dumps(ai_response, indent=2)
+
+        # show STAR breakdown for behavioral mode
+        if state["mode"] == "BEHAVIORAL" and evaluation.get("star_breakdown"):
+            star = evaluation["star_breakdown"]
+            star_text = "\n\n**STAR Breakdown:**"
+            for element in ["situation", "task", "action", "result"]:
+                if element in star:
+                    s = star[element]
+                    score = s.get("score", "?") if isinstance(s, dict) else "?"
+                    comment = s.get("comment", "") if isinstance(s, dict) else str(s)
+                    star_text += f"\n- **{element.capitalize()}** ({score}/2.5): {comment}"
+            ai_response += star_text
             
         if evaluation.get("ideal_answer"):
             ideal = evaluation['ideal_answer']

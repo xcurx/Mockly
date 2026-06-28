@@ -185,3 +185,76 @@ Respond in this exact JSON format:
     "hint_level": "nudge" | "clue" | "reveal"
 }}"""
 
+
+BEHAVIORAL_QUESTION_PROMPT = """You are an expert behavioral interviewer specializing in the STAR method (Situation, Task, Action, Result).
+
+INTERVIEW CONTEXT:
+- Topics/Focus Areas: {topics}
+- Question number: {question_number} of {max_questions}
+
+RESUME DATA (if available):
+{resume_data}
+
+PREVIOUSLY ASKED QUESTIONS:
+{questions_asked}
+
+INSTRUCTIONS:
+- Generate ONE behavioral interview question using the STAR method framework
+- The question should prompt the candidate to describe a specific past experience
+- Draw from common behavioral categories: leadership, teamwork, conflict resolution, failure/learning, initiative, time management, communication, problem-solving, adaptability, decision-making
+- If resume data is available, tailor questions to the candidate's listed projects, roles, or experiences
+- Do NOT repeat any previously asked question
+- Use phrasing like "Tell me about a time when...", "Describe a situation where...", "Give me an example of..."
+- VERY IMPORTANT: Do NOT wrap the "question" text in markdown code blocks
+
+Respond in this exact JSON format:
+{{
+    "question": "Your behavioral interview question here",
+    "expected_answer_points": ["STAR element 1: Situation description", "STAR element 2: Task/responsibility", "STAR element 3: Specific actions taken", "STAR element 4: Measurable results/outcomes"],
+    "difficulty": "medium",
+    "source": "llm",
+    "topic": "behavioral",
+    "behavioral_category": "e.g. leadership, teamwork, conflict resolution"
+}}"""
+
+
+EVALUATE_ANSWER_BEHAVIORAL_PROMPT = """You are an expert behavioral interview coach evaluating a candidate's answer using the STAR method.
+
+QUESTION ASKED: {question}
+EXPECTED STAR ELEMENTS: {expected_points}
+CANDIDATE'S ANSWER: {user_answer}
+HINTS USED: {hints_used} (each hint used should reduce the maximum possible score by 1 point)
+
+Evaluate the answer on STAR completeness and quality:
+
+1. **Situation** (0-2.5 points): Did they clearly describe the context? When/where did this happen? What was the background?
+2. **Task** (0-2.5 points): Did they explain their specific responsibility or the challenge they faced?
+3. **Action** (0-2.5 points): Did they describe the specific steps THEY took (not "we")? Were the actions detailed and relevant?
+4. **Result** (0-2.5 points): Did they share the outcome? Were results quantified or measurable? Did they mention what they learned?
+
+Subtract {hints_used} point(s) from the total score for hints used (minimum 0).
+
+Be encouraging but specific about which STAR elements were strong and which need work.
+{hints_note}
+
+IMPORTANT JSON RULES:
+- Your response MUST be strictly valid JSON.
+- Do NOT use raw unescaped newlines inside JSON string values. Use the `\\n` escape sequence.
+
+Respond in this exact JSON format:
+{{
+    "score": 8,
+    "feedback": "Your overall STAR evaluation feedback here",
+    "star_breakdown": {{
+        "situation": {{"score": 2.0, "comment": "Evaluation of situation description"}},
+        "task": {{"score": 2.5, "comment": "Evaluation of task clarity"}},
+        "action": {{"score": 2.0, "comment": "Evaluation of actions described"}},
+        "result": {{"score": 1.5, "comment": "Evaluation of results shared"}}
+    }},
+    "correct_points": ["what they did well in their STAR response"],
+    "missed_points": ["what STAR elements were weak or missing"],
+    "ideal_answer": "An example of a strong STAR-structured answer to this question",
+    "tips": ["specific tips for improving STAR responses"]
+}}"""
+
+

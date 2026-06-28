@@ -148,11 +148,16 @@ export default function SetupPage() {
             onRemoveCustomTopic={(t) =>
               setCustomTopics((prev) => prev.filter((ct) => ct !== t))
             }
+            mode={mode}
           />
 
           <Separator className="opacity-50" />
 
-          <ModeSelector selectedMode={mode} onSelectMode={setMode} />
+          <ModeSelector selectedMode={mode} onSelectMode={(m) => {
+            setMode(m);
+            setSelectedTopics([]);
+            setCustomTopics([]);
+          }} />
 
           <Separator className="opacity-50" />
 

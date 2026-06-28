@@ -13,6 +13,13 @@ export const INTERVIEW_MODES = [
       "AI behaves like a real interviewer — brief responses, follow-up questions, no answer reveals.",
     emoji: "💼",
   },
+  {
+    id: "BEHAVIORAL",
+    label: "Behavioral Mode",
+    description:
+      "STAR-method questions about leadership, teamwork, and past experiences. Great with a resume uploaded.",
+    emoji: "🗣️",
+  },
 ] as const;
 
 export const INTERACTION_TYPES = [
@@ -47,6 +54,18 @@ export const CURATED_TOPICS = [
   { id: "java", label: "Java", emoji: "☕" },
   { id: "nodejs", label: "Node.js", emoji: "🟢" },
   { id: "devops", label: "DevOps & CI/CD", emoji: "🔧" },
-  { id: "behavioral", label: "Behavioral", emoji: "🗣️" },
   { id: "ml-ai", label: "ML / AI", emoji: "🤖" },
+] as const;
+
+export const BEHAVIORAL_CATEGORIES = [
+  { id: "leadership", label: "Leadership", emoji: "👑" },
+  { id: "teamwork", label: "Teamwork", emoji: "🤝" },
+  { id: "conflict-resolution", label: "Conflict Resolution", emoji: "⚖️" },
+  { id: "problem-solving", label: "Problem Solving", emoji: "🧩" },
+  { id: "communication", label: "Communication", emoji: "💬" },
+  { id: "adaptability", label: "Adaptability", emoji: "🔄" },
+  { id: "time-management", label: "Time Management", emoji: "⏰" },
+  { id: "initiative", label: "Initiative", emoji: "🚀" },
+  { id: "failure-learning", label: "Failure & Learning", emoji: "📈" },
+  { id: "decision-making", label: "Decision Making", emoji: "🎯" },
 ] as const;

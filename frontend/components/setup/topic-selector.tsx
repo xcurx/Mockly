@@ -1,6 +1,6 @@
 "use client";
 
-import { CURATED_TOPICS } from "@/lib/constants";
+import { CURATED_TOPICS, BEHAVIORAL_CATEGORIES } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ interface TopicSelectorProps {
   customTopics: string[];
   onAddCustomTopic: (topic: string) => void;
   onRemoveCustomTopic: (topic: string) => void;
+  mode?: string;
 }
 
 export function TopicSelector({
@@ -22,6 +23,7 @@ export function TopicSelector({
   customTopics,
   onAddCustomTopic,
   onRemoveCustomTopic,
+  mode = "TRAINING",
 }: TopicSelectorProps) {
   const [customInput, setCustomInput] = useState("");
 
@@ -33,12 +35,17 @@ export function TopicSelector({
     }
   };
 
+  const isBehavioral = mode === "BEHAVIORAL";
+  const topics = isBehavioral ? BEHAVIORAL_CATEGORIES : CURATED_TOPICS;
+
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-medium mb-3">Select Topics</h3>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-          {CURATED_TOPICS.map((topic) => {
+        <h3 className="text-sm font-medium mb-3">
+          {isBehavioral ? "Select Focus Areas" : "Select Topics"}
+        </h3>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+          {topics.map((topic) => {
             const isSelected = selectedTopics.includes(topic.id);
             return (
               <button
@@ -60,41 +67,45 @@ export function TopicSelector({
         </div>
       </div>
 
-      {/* Custom topic input */}
-      <div className="flex gap-2">
-        <Input
-          placeholder="Add a custom topic..."
-          value={customInput}
-          onChange={(e) => setCustomInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-          className="h-8 text-xs"
-        />
-        <Button variant="outline" size="sm" onClick={handleAdd} className="shrink-0 gap-1">
-          <Plus weight="bold" className="size-3" />
-          Add
-        </Button>
-      </div>
+      {/* Custom topic input — only for non-behavioral modes */}
+      {!isBehavioral && (
+        <>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Add a custom topic..."
+              value={customInput}
+              onChange={(e) => setCustomInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              className="h-8 text-xs"
+            />
+            <Button variant="outline" size="sm" onClick={handleAdd} className="shrink-0 gap-1">
+              <Plus weight="bold" className="size-3" />
+              Add
+            </Button>
+          </div>
 
-      {/* Custom topic pills */}
-      {customTopics.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {customTopics.map((topic) => (
-            <Badge
-              key={topic}
-              variant="secondary"
-              className="gap-1 pr-1 text-xs"
-            >
-              {topic}
-              <button
-                type="button"
-                onClick={() => onRemoveCustomTopic(topic)}
-                className="rounded-full hover:bg-foreground/10 p-0.5"
-              >
-                <X weight="bold" className="size-2.5" />
-              </button>
-            </Badge>
-          ))}
-        </div>
+          {/* Custom topic pills */}
+          {customTopics.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {customTopics.map((topic) => (
+                <Badge
+                  key={topic}
+                  variant="secondary"
+                  className="gap-1 pr-1 text-xs"
+                >
+                  {topic}
+                  <button
+                    type="button"
+                    onClick={() => onRemoveCustomTopic(topic)}
+                    className="rounded-full hover:bg-foreground/10 p-0.5"
+                  >
+                    <X weight="bold" className="size-2.5" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
