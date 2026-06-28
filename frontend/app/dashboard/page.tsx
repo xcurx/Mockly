@@ -2,8 +2,10 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/prisma/prisma";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsBar, InterviewCard } from "@/components/dashboard/stats-and-cards";
-import { Rocket } from "@phosphor-icons/react/dist/ssr";
+import { AnalyticsView } from "@/components/dashboard/analytics-view";
+import { Rocket, ChartLineUp } from "@phosphor-icons/react/dist/ssr";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -55,58 +57,78 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats */}
-      <StatsBar
-        totalInterviews={totalInterviews}
-        avgScore={avgScore}
-        lastTopic={lastTopic}
-      />
+      {/* Dashboard Tabs */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="bg-muted/50">
+          <TabsTrigger value="overview" className="gap-2">
+            <Rocket weight="duotone" className="size-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <ChartLineUp weight="duotone" className="size-4" />
+            Analytics
+          </TabsTrigger>
+        </TabsList>
 
-      {/* CTA */}
-      <Link href="/dashboard/setup">
-        <Button
-          size="lg"
-          className="w-full sm:w-auto gap-2 bg-gradient-to-r from-purple-600 to-cyan-600 text-white border-0 hover:opacity-90 text-sm h-11"
-        >
-          <Rocket weight="fill" className="size-4" />
-          Start New Interview
-        </Button>
-      </Link>
+        <TabsContent value="overview" className="space-y-8 animate-in fade-in duration-500 outline-none">
+          {/* Stats */}
+          <StatsBar
+            totalInterviews={totalInterviews}
+            avgScore={avgScore}
+            lastTopic={lastTopic}
+          />
 
-      {/* Recent Interviews */}
-      {recentInterviews.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-muted-foreground">
-              Recent Interviews
-            </h2>
-            <Link
-              href="/dashboard/history"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          {/* CTA */}
+          <Link href="/dashboard/setup">
+            <Button
+              size="lg"
+              className="w-full sm:w-auto gap-2 bg-gradient-to-r from-purple-600 to-cyan-600 text-white border-0 hover:opacity-90 text-sm h-11"
             >
-              View all →
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {recentInterviews.map((interview) => (
-              <InterviewCard key={interview.id} interview={interview} />
-            ))}
-          </div>
-        </section>
-      )}
+              <Rocket weight="fill" className="size-4" />
+              Start New Interview
+            </Button>
+          </Link>
 
-      {/* Empty state */}
-      {recentInterviews.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="size-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-            <Rocket weight="duotone" className="size-8 text-muted-foreground" />
-          </div>
-          <h3 className="text-base font-medium">No interviews yet</h3>
-          <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-            Start your first mock interview and get AI-powered feedback
-          </p>
-        </div>
-      )}
+          {/* Recent Interviews */}
+          {recentInterviews.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-medium text-muted-foreground">
+                  Recent Interviews
+                </h2>
+                <Link
+                  href="/dashboard/history"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  View all →
+                </Link>
+              </div>
+              <div className="space-y-2">
+                {recentInterviews.map((interview) => (
+                  <InterviewCard key={interview.id} interview={interview} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Empty state */}
+          {recentInterviews.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="size-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                <Rocket weight="duotone" className="size-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-base font-medium">No interviews yet</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                Start your first mock interview and get AI-powered feedback
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="outline-none">
+          <AnalyticsView />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
