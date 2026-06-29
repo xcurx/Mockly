@@ -14,6 +14,10 @@ Mockly is an AI-powered Mock Interview platform designed to help developers ace 
 *   **💾 Query Caching:** In-memory caching for web research results to save Tavily API credits and improve API response times.
 *   **📝 Interactive Chat Sandbox:** Responsive, sticky chat interface with isolated scroll areas for questions and evaluations.
 *   **🗣️ Voice Capabilities:** Integrated STS (Speech-to-Speech) and TTS (Text-to-Speech) features for an immersive and realistic interview experience.
+*   **💾 Session Persistence:** Interviews are automatically saved to the database. Safely leave or refresh the page and resume right where you left off.
+*   **⭐ Bookmark & Review Mode:** Bookmark challenging questions during practice, then launch a dedicated "Review Mode" to drill those specific concepts.
+*   **👥 Behavioral & STAR Mode:** Dedicated interview mode that generates non-technical behavioral questions and evaluates answers against the Situation, Task, Action, Result framework.
+*   **🧠 Vector Question Memory:** Uses ChromaDB and semantic similarity to remember which questions you've already mastered, ensuring fresh questions every time you practice a topic.
 *   **🔐 NextAuth Integration:** Out-of-the-box support for Google & GitHub social logins.
 *   **📊 Database Integration:** Prisma Client connected to a PostgreSQL database for session management.
 
@@ -31,6 +35,7 @@ Mockly is an AI-powered Mock Interview platform designed to help developers ace 
 *   **Framework:** FastAPI (Python 3.10+)
 *   **Agentic Orchestration:** LangGraph & LangChain
 *   **Models:** NVIDIA NIMs (Llama 3.1 8B/70B Instruct)
+*   **Vector DB:** ChromaDB (for intelligent question memory)
 *   **Search Engine:** Tavily Search API
 *   **Text Extraction:** PyMuPDF (fitz) & python-docx
 *   **Parsing Resiliency:** `json-repair`
