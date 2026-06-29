@@ -19,6 +19,10 @@ app.add_middleware(
 
 app.include_router(router, prefix="/api")
 
-@app.get("/health")
+@app.head("/health")
 async def health():
     return {"status": "ok"}
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Mockly API"}
