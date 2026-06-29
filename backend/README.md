@@ -6,4 +6,5 @@ colorTo: indigo
 sdk: docker
 app_port: 7860
 pinned: false
+short_description: Backend for Mockly
 ---
