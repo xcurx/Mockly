@@ -4,7 +4,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-CHROMA_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "chroma_db")
+CHROMA_DB_PATH = os.environ.get(
+    "CHROMA_DB_DIR", 
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "chroma_db")
+)
 COLLECTION_NAME = "question_memory"
 SCORE_THRESHOLD = 7
 
