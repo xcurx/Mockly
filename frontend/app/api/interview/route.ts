@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
             interactionType,
             maxQuestions: maxQuestions || 10,
             resumeData,
+            userId: session.user.id,
         })
 
         await prisma.interview.update({

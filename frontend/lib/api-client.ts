@@ -10,6 +10,7 @@ export async function startInterview(config: {
   maxQuestions: number;
   resumeData?: Record<string, unknown> | null;
   bookmarked_questions?: string[];
+  userId?: string;
 }) {
   try {
     const { data } = await axios.post(`${API_URL}/api/interview/start`, {
@@ -20,6 +21,7 @@ export async function startInterview(config: {
       max_questions: config.maxQuestions,
       resume_data: config.resumeData || null,
       bookmarked_questions: config.bookmarked_questions || [],
+      user_id: config.userId || "",
     });
     return data;
   } catch (error) {
@@ -35,13 +37,15 @@ export async function startInterview(config: {
 export async function sendAnswer(
   userAnswer: string,
   interviewState: Record<string, unknown>,
-  hintsUsed: number = 0
+  hintsUsed: number = 0,
+  userId: string = ""
 ) {
   try {
     const { data } = await axios.post(`${API_URL}/api/interview/respond`, {
       user_answer: userAnswer,
       interview_state: interviewState,
       hints_used: hintsUsed,
+      user_id: userId,
     });
     return data;
   } catch (error) {

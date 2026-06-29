@@ -131,17 +131,20 @@ def generate_question_node(state: dict) -> dict:
             
         prompt = REVIEW_QUESTION_PROMPT.format(bookmarked_question=bookmarked_q)
     elif mode == "BEHAVIORAL":
+        mastered = state.get("mastered_questions", []) or []
         prompt = BEHAVIORAL_QUESTION_PROMPT.format(
             topics=", ".join(state["topics"] + state.get("custom_topics", [])),
             question_number=state["current_question_number"],
             max_questions=state["max_questions"],
             resume_data=json.dumps(state.get("resume_data")) if state.get("resume_data") else "Not provided",
             questions_asked=json.dumps([q.get("question", "") for q in state.get("questions_asked", [])]),
+            mastered_questions=json.dumps(mastered) if mastered else "None yet.",
         )
     else:
         difficulty_directive, performance_context = compute_adaptive_difficulty(
             state.get("evaluation_history", [])
         )
+        mastered = state.get("mastered_questions", []) or []
 
         prompt = QUESTION_GENERATION_PROMPT.format(
             topics=", ".join(state["topics"] + state.get("custom_topics", [])),
@@ -152,6 +155,7 @@ def generate_question_node(state: dict) -> dict:
             research_context=state.get("research_context", "No research available"),
             resume_data=json.dumps(state.get("resume_data")) if state.get("resume_data") else "No provided",
             questions_asked=json.dumps([q.get("question", "") for q in state.get("questions_asked", [])]),
+            mastered_questions=json.dumps(mastered) if mastered else "None yet.",
         )
 
     response = llm.invoke([

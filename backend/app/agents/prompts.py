@@ -32,10 +32,14 @@ RESUME DATA (if available):
 PREVIOUSLY ASKED QUESTIONS:
 {questions_asked}
 
+QUESTIONS THE CANDIDATE HAS ALREADY MASTERED IN PAST SESSIONS (avoid asking these or semantically similar ones):
+{mastered_questions}
+
 INSTRUCTIONS:
 - Generate ONE interview question at the specified difficulty level
 - Draw from the research material when possible, but also use your own knowledge
 - Do NOT repeat any previously asked question
+- Do NOT ask questions that are semantically similar to the mastered questions listed above
 - Mix question types: conceptual, coding, scenario-based, system design
 - If resume data is available, tailor some questions to the candidate's experience
 - Match the difficulty level described above — this is critical for the candidate's learning progression
@@ -198,12 +202,16 @@ RESUME DATA (if available):
 PREVIOUSLY ASKED QUESTIONS:
 {questions_asked}
 
+QUESTIONS THE CANDIDATE HAS ALREADY MASTERED IN PAST SESSIONS (avoid asking these or semantically similar ones):
+{mastered_questions}
+
 INSTRUCTIONS:
 - Generate ONE behavioral interview question using the STAR method framework
 - The question should prompt the candidate to describe a specific past experience
 - Draw from common behavioral categories: leadership, teamwork, conflict resolution, failure/learning, initiative, time management, communication, problem-solving, adaptability, decision-making
 - If resume data is available, tailor questions to the candidate's listed projects, roles, or experiences
 - Do NOT repeat any previously asked question
+- Do NOT ask questions that are semantically similar to the mastered questions listed above
 - Use phrasing like "Tell me about a time when...", "Describe a situation where...", "Give me an example of..."
 - VERY IMPORTANT: Do NOT wrap the "question" text in markdown code blocks
 

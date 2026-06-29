@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const {userAnswer, interviewState, hintsUsed = 0} = await req.json()
 
     try {
-        const result = await sendAnswer(userAnswer, interviewState, hintsUsed)
+        const result = await sendAnswer(userAnswer, interviewState, hintsUsed, session.user.id)
         
         await prisma.interview.update({
             where: { id },

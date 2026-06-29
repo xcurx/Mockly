@@ -22,3 +22,4 @@ class InterviewState(TypedDict):
     current_question: Optional[dict]
     current_evaluation: Optional[dict]
     current_summary: Optional[dict]
+    mastered_questions: Optional[list[str]]
