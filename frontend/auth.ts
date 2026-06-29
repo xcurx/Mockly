@@ -6,7 +6,13 @@ import { prisma } from "./prisma/prisma"
  
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  providers: [Google, GitHub],
+  providers: [
+    Google({ allowDangerousEmailAccountLinking: true }),
+    GitHub({ allowDangerousEmailAccountLinking: true })
+  ],
+  session: {
+    maxAge: 7 * 24 * 60 * 60, // 1 week
+  },
   pages: {
     signIn: "/sign-in",
   },
