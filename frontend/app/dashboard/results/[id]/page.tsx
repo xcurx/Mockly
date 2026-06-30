@@ -71,7 +71,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
             </span>
             <span className="text-muted-foreground text-xs">•</span>
             <div className="flex gap-1.5">
-              {interview.topics.slice(0, 3).map((t) => (
+              {[...(interview.topics || []), ...(interview.customTopics || [])].slice(0, 3).map((t) => (
                 <Badge key={t} variant="secondary" className="text-[10px] py-0">{t}</Badge>
               ))}
             </div>

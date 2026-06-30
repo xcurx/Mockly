@@ -64,6 +64,7 @@ interface InterviewCardProps {
   interview: {
     id: string;
     topics: string[];
+    customTopics?: string[];
     mode: string;
     status: string;
     overallScore: number | null;
@@ -78,13 +79,15 @@ export function InterviewCard({ interview }: InterviewCardProps) {
       ? `/dashboard/results/${interview.id}`
       : `/dashboard/interview/${interview.id}`;
 
+  const allTopics = [...(interview.topics || []), ...(interview.customTopics || [])];
+
   return (
     <Link href={href}>
       <Card className="group border-border/50 transition-all hover:border-border hover:shadow-md hover:shadow-purple-500/5 cursor-pointer">
         <CardContent className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex flex-wrap gap-1.5">
-              {interview.topics.slice(0, 3).map((topic) => (
+              {allTopics.slice(0, 3).map((topic) => (
                 <Badge
                   key={topic}
                   variant="secondary"
@@ -93,9 +96,9 @@ export function InterviewCard({ interview }: InterviewCardProps) {
                   {topic}
                 </Badge>
               ))}
-              {interview.topics.length > 3 && (
+              {allTopics.length > 3 && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  +{interview.topics.length - 3}
+                  +{allTopics.length - 3}
                 </Badge>
               )}
             </div>

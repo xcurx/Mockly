@@ -42,7 +42,7 @@ export default async function DashboardPage() {
 
   const lastTopic =
     recentInterviews.length > 0
-      ? recentInterviews[0].topics[0] || null
+      ? recentInterviews[0].topics[0] || recentInterviews[0].customTopics?.[0] || null
       : null;
 
   return (
