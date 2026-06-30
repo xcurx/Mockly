@@ -8,7 +8,7 @@ class InterviewState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
 
     topics: list[str]
-    custom_topic: list[str]
+    custom_topics: list[str]
     mode: Literal["TRAINING", "REALISTIC", "REVIEW", "BEHAVIORAL"]
     interaction_type: str
     max_questions: int
