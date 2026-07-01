@@ -381,5 +381,24 @@ def summarize_node(state: dict) -> dict:
                 "recommendations": [],
                 "encouragement": "We couldn't generate a summary due to an error.",
             }
+            
+    valid_scores = [e.get("score") for e in evaluations if isinstance(e.get("score"), (int, float))]
+    if valid_scores:
+        avg = sum(valid_scores) / len(valid_scores)
+        score_percent = int(avg * 10)
+        summary["overall_score"] = score_percent
+        if score_percent >= 90:
+            summary["grade"] = "A"
+        elif score_percent >= 80:
+            summary["grade"] = "B"
+        elif score_percent >= 70:
+            summary["grade"] = "C"
+        elif score_percent >= 60:
+            summary["grade"] = "D"
+        else:
+            summary["grade"] = "F"
+    else:
+        summary["overall_score"] = 0
+        summary["grade"] = "N/A"
     
     return {"current_summary": summary, "interview_complete": True}
