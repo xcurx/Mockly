@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Timer, SignOut, Hash, HourglassHigh } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface InterviewHeaderProps {
   questionNumber: number;
   maxQuestions: number;
   mode: string;
   topics: string[];
+  difficulty?: string | null;
   onEndInterview: () => void;
   isEnding: boolean;
   timeRemaining?: number | null;
@@ -22,6 +24,7 @@ export function InterviewHeader({
   maxQuestions,
   mode,
   topics,
+  difficulty,
   onEndInterview,
   isEnding,
   timeRemaining,
@@ -78,8 +81,22 @@ export function InterviewHeader({
             variant="outline"
             className="text-[10px] shrink-0"
           >
-            {mode === "TRAINING" ? "📚 Training" : "💼 Realistic"}
+            {mode === "TRAINING" ? "📚 Training" : mode === "BEHAVIORAL" ? "🗣️ Behavioral" : "💼 Realistic"}
           </Badge>
+
+          {difficulty && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-[10px] shrink-0",
+                difficulty === "easy" && "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
+                difficulty === "medium" && "border-amber-500/40 text-amber-400 bg-amber-500/10",
+                difficulty === "hard" && "border-red-500/40 text-red-400 bg-red-500/10",
+              )}
+            >
+              {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+            </Badge>
+          )}
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
