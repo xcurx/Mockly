@@ -23,6 +23,9 @@ ADAPTIVE DIFFICULTY:
 CANDIDATE PERFORMANCE SO FAR:
 {performance_context}
 
+ROLE CONTEXT:
+{role_context}
+
 RESEARCH MATERIAL (questions sourced from the web):
 {research_context}
 
@@ -83,6 +86,9 @@ EXPECTED KEY POINTS: {expected_points}
 CANDIDATE'S ANSWER: {user_answer}
 HINTS USED: {hints_used} (each hint used should reduce the maximum possible score by 1 point)
 
+CANDIDATE LEVEL:
+{role_evaluation_context}
+
 Evaluate the answer thoroughly:
 1. Score from 0-10 (subtract {hints_used} point(s) from the max possible score for hints used, minimum 0)
 2. What the candidate got RIGHT
@@ -113,6 +119,9 @@ EVALUATE_ANSWER_REALISTIC_PROMPT = """You are a senior engineer conducting a REA
 QUESTION ASKED: {question}
 EXPECTED KEY POINTS: {expected_points}
 CANDIDATE'S ANSWER: {user_answer}
+
+CANDIDATE LEVEL:
+{role_evaluation_context}
 
 Behave like a REAL interviewer:
 - Give brief, natural acknowledgments ("Okay", "Interesting", "I see")
@@ -196,6 +205,9 @@ INTERVIEW CONTEXT:
 - Topics/Focus Areas: {topics}
 - Question number: {question_number} of {max_questions}
 
+ROLE CONTEXT:
+{role_context}
+
 RESUME DATA (if available):
 {resume_data}
 
@@ -232,6 +244,9 @@ QUESTION ASKED: {question}
 EXPECTED STAR ELEMENTS: {expected_points}
 CANDIDATE'S ANSWER: {user_answer}
 HINTS USED: {hints_used} (each hint used should reduce the maximum possible score by 1 point)
+
+CANDIDATE LEVEL:
+{role_evaluation_context}
 
 Evaluate the answer on STAR completeness and quality:
 
