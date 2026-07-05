@@ -78,24 +78,27 @@ model Resume {
 }
 
 model Interview {
-  id              String              @id @default(cuid())
-  userId          String
-  topics          String[]
-  customTopics    String[]
-  mode            InterviewMode
-  interactionType InteractionType
-  maxQuestions    Int                 @default(10)
+  id               String              @id @default(cuid())
+  userId           String
+  topics           String[]
+  customTopics     String[]
+  mode             InterviewMode
+  interactionType  InteractionType
+  maxQuestions     Int                 @default(10)
   timeLimitSeconds Int?
-  status          InterviewStatus     @default(IN_PROGRESS)
-  overallScore    Float?
-  summary         Json?
-  interviewState  Json?
-  resumeId        String?
-  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resume          Resume?             @relation(fields: [resumeId], references: [id])
-  exchanges       InterviewExchange[]
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  difficultyMode   DifficultyMode      @default(ADAPTIVE)
+  manualDifficulty Int?
+  role             ExperienceLevel?
+  status           InterviewStatus     @default(IN_PROGRESS)
+  overallScore     Float?
+  summary          Json?
+  interviewState   Json?
+  resumeId         String?
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume           Resume?             @relation(fields: [resumeId], references: [id])
+  exchanges        InterviewExchange[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 }
 
 model InterviewExchange {
@@ -123,6 +126,19 @@ enum InteractionType {
   TEXT
   SPEECH_TO_SPEECH
   SPEECH_TO_TEXT
+}
+
+enum DifficultyMode {
+  ADAPTIVE
+  MANUAL
+}
+
+enum ExperienceLevel {
+  INTERN
+  JUNIOR
+  MID
+  SENIOR
+  STAFF
 }
 
 enum InterviewStatus {
