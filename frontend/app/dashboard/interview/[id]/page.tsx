@@ -34,6 +34,7 @@ export default function InterviewPage() {
   const [isThinking, setIsThinking] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [currentDifficulty, setCurrentDifficulty] = useState<string | null>(null);
   const [timeLimitSeconds, setTimeLimitSeconds] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [hintsUsed, setHintsUsed] = useState(0);
@@ -47,6 +48,9 @@ export default function InterviewPage() {
     if (stored) {
       const data = JSON.parse(stored) as InterviewSessionData;
       setSessionData(data);
+      if (data.currentQuestion?.difficulty) {
+        setCurrentDifficulty(data.currentQuestion.difficulty);
+      }
       if (data.timeLimitSeconds) {
         setTimeLimitSeconds(data.timeLimitSeconds);
         setTimeRemaining(data.timeLimitSeconds);
@@ -357,6 +361,11 @@ export default function InterviewPage() {
           setQuestionNumber(nextQNum);
           setHintsUsed(0);
 
+          // update difficulty from the new question
+          if (data.questionDifficulty) {
+            setCurrentDifficulty(data.questionDifficulty);
+          }
+
           setSessionData({
             interviewState: data.interviewState,
             currentQuestion: data.question,
@@ -443,6 +452,7 @@ export default function InterviewPage() {
         maxQuestions={maxQuestions}
         mode={mode}
         topics={topics}
+        difficulty={currentDifficulty}
         onEndInterview={handleEndInterview}
         isEnding={isEnding}
         timeRemaining={timeRemaining}

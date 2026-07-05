@@ -8,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { TopicSelector } from "@/components/setup/topic-selector";
 import { ModeSelector } from "@/components/setup/mode-selector";
 import { InteractionTypeSelector } from "@/components/setup/interaction-type-selector";
+import { DifficultySelector } from "@/components/setup/difficulty-selector";
+import { RoleSelector } from "@/components/setup/role-selector";
 import { QuestionCountSlider } from "@/components/setup/question-count-slider";
 import { TimerSelector } from "@/components/setup/timer-selector";
 import { ResumeUpload } from "@/components/setup/resume-upload";
@@ -20,6 +22,9 @@ export default function SetupPage() {
   const [customTopics, setCustomTopics] = useState<string[]>([]);
   const [mode, setMode] = useState("TRAINING");
   const [interactionType, setInteractionType] = useState("TEXT");
+  const [difficultyMode, setDifficultyMode] = useState("ADAPTIVE");
+  const [manualDifficulty, setManualDifficulty] = useState(3);
+  const [role, setRole] = useState<string | null>(null);
   const [maxQuestions, setMaxQuestions] = useState(10);
   const [timeLimitSeconds, setTimeLimitSeconds] = useState<number | null>(null);
   const [resumeId, setResumeId] = useState<string | null>(null);
@@ -84,6 +89,9 @@ export default function SetupPage() {
           customTopics,
           mode,
           interactionType,
+          difficultyMode: mode === "REVIEW" ? "ADAPTIVE" : difficultyMode,
+          manualDifficulty: difficultyMode === "MANUAL" ? manualDifficulty : null,
+          role: role || null,
           maxQuestions,
           timeLimitSeconds,
           resumeId,
@@ -101,7 +109,10 @@ export default function SetupPage() {
         `interview-${data.interviewId}`,
         JSON.stringify({
           interviewState: data.interviewState,
-          currentQuestion: data.question,
+          currentQuestion: {
+            question: data.question,
+            difficulty: data.questionDifficulty || null,
+          },
           questionNumber: 1,
           timeLimitSeconds,
         })
@@ -165,6 +176,26 @@ export default function SetupPage() {
             selectedType={interactionType}
             onSelectType={setInteractionType}
           />
+
+          {mode !== "REVIEW" && (
+            <>
+              <Separator className="opacity-50" />
+
+              <DifficultySelector
+                difficultyMode={difficultyMode}
+                onSelectMode={setDifficultyMode}
+                manualDifficulty={manualDifficulty}
+                onSelectLevel={setManualDifficulty}
+              />
+
+              <Separator className="opacity-50" />
+
+              <RoleSelector
+                selectedRole={role}
+                onSelectRole={setRole}
+              />
+            </>
+          )}
 
           <Separator className="opacity-50" />
 
