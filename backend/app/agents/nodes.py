@@ -65,10 +65,91 @@ def research_node(state: dict) -> dict:
 
     return {"research_context": research_context}
 
-def compute_adaptive_difficulty(evaluation_history: list[dict]) -> tuple[str, str]:
+ROLE_DIFFICULTY_BOUNDS = {
+    "INTERN":  (1, 2),
+    "JUNIOR":  (1, 3),
+    "MID":     (2, 4),
+    "SENIOR":  (3, 5),
+    "STAFF":   (4, 5),
+}
+
+DIFFICULTY_LEVEL_LABELS = {
+    1: "Foundational",
+    2: "Intermediate",
+    3: "Advanced",
+    4: "Expert",
+    5: "Staff+",
+}
+
+DIFFICULTY_LEVEL_DESCRIPTIONS = {
+    1: "Core definitions, basic syntax, and 'what is X?' questions.",
+    2: "Apply concepts, compare trade-offs, and 'how does X work?' questions.",
+    3: "Edge cases, design decisions, and deeper 'why' reasoning.",
+    4: "System-level thinking, performance implications, and production gotchas.",
+    5: "Architecture-level, cross-system trade-offs, and 'design a system that...' questions.",
+}
+
+def get_role_context(role: str | None) -> str:
+    if not role or role not in ROLE_DIFFICULTY_BOUNDS:
+        return "No specific role was provided. Use your judgment to calibrate difficulty."
+    
+    min_lvl, max_lvl = ROLE_DIFFICULTY_BOUNDS[role]
+    min_label = DIFFICULTY_LEVEL_LABELS[min_lvl]
+    max_label = DIFFICULTY_LEVEL_LABELS[max_lvl]
+    
+    role_descriptions = {
+        "INTERN": "The candidate is at the INTERN level. Questions should test understanding of core concepts and basic application. Do NOT ask about system design, production-level trade-offs, or architectural decisions.",
+        "JUNIOR": "The candidate is at the JUNIOR level. Questions should test solid fundamentals with some depth. Expect working knowledge but not deep system expertise or production experience.",
+        "MID": "The candidate is at the MID-LEVEL. Questions should test deeper understanding, real-world trade-offs, and practical problem solving. They should have solid fundamentals and some production experience.",
+        "SENIOR": "The candidate is at the SENIOR level. Questions should test architecture, system design, performance optimization, and technical leadership. They should demonstrate deep expertise.",
+        "STAFF": "The candidate is at the STAFF+ level. Questions should test cross-system thinking, organizational impact, and deep domain expertise. Expect architectural vision and broad technical judgment.",
+    }
+    
+    return (
+        f"{role_descriptions.get(role, '')}"
+        f" Difficulty range: {min_lvl} ({min_label}) to {max_lvl} ({max_label}) on a 5-point scale."
+    )
+
+def get_role_evaluation_context(role: str | None) -> str:
+    if not role or role not in ROLE_DIFFICULTY_BOUNDS:
+        return "No specific role provided. Score based on absolute quality of the answer."
+    
+    eval_descriptions = {
+        "INTERN": "The candidate is at the INTERN level. Calibrate your scoring expectations accordingly — an intern is not expected to have production experience or deep system-level depth. Focus on whether they demonstrate understanding of core concepts. A correct but surface-level answer is acceptable.",
+        "JUNIOR": "The candidate is at the JUNIOR level. They should demonstrate solid fundamentals and basic practical knowledge. Don't penalize for lack of system design depth, but do expect correct core concepts and reasonable explanations.",
+        "MID": "The candidate is at the MID-LEVEL. Expect well-structured answers with practical depth. They should demonstrate real-world understanding, trade-off awareness, and the ability to reason about 'why' not just 'what'.",
+        "SENIOR": "The candidate is at the SENIOR level. Expect comprehensive, well-structured answers demonstrating deep expertise. They should show system-level thinking, performance awareness, and the ability to discuss architecture and trade-offs at scale.",
+        "STAFF": "The candidate is at the STAFF+ level. Expect expert-level answers with cross-system perspective. They should demonstrate broad technical judgment, architectural vision, and awareness of organizational and engineering culture implications.",
+    }
+    
+    return eval_descriptions.get(role, "Score based on absolute quality of the answer.")
+
+def compute_manual_difficulty(level: int, role: str | None = None) -> tuple[str, str]:
+    level = max(1, min(5, level))  # clamp to 1-5
+    label = DIFFICULTY_LEVEL_LABELS[level]
+    description = DIFFICULTY_LEVEL_DESCRIPTIONS[level]
+    
+    difficulty_directive = (
+        f"Target difficulty: Level {level}/5 ({label}). {description} "
+        f"Keep ALL questions at this difficulty level — do NOT vary."
+    )
+    performance_context = f"Manual difficulty mode — fixed at Level {level} ({label})."
+    
+    return difficulty_directive, performance_context
+
+def compute_adaptive_difficulty(evaluation_history: list[dict], role: str | None = None) -> tuple[str, str]:
     if not evaluation_history:
+        # determine starting level based on role
+        if role and role in ROLE_DIFFICULTY_BOUNDS:
+            min_lvl, max_lvl = ROLE_DIFFICULTY_BOUNDS[role]
+            start_level = min(min_lvl + 1, max_lvl)  # start one above minimum, clamped
+            label = DIFFICULTY_LEVEL_LABELS[start_level]
+            return (
+                f"Target difficulty: Level {start_level}/5 ({label}). This is the first question — start at a moderate level for the candidate's experience.",
+                "No answers yet — this is the beginning of the interview."
+            )
         return (
-            "Target difficulty: MEDIUM. This is the first question — start at a moderate level.",
+            "Target difficulty: Level 2/5 (Intermediate). This is the first question — start at a moderate level.",
             "No answers yet — this is the beginning of the interview."
         )
     
@@ -88,30 +169,31 @@ def compute_adaptive_difficulty(evaluation_history: list[dict]) -> tuple[str, st
         f"Recent average: {avg_score:.1f}/10 | Overall average: {overall_avg:.1f}/10"
     )
     
-    if avg_score >= 8.0:
-        difficulty_directive = (
-            "Target difficulty: HARD. The candidate is performing exceptionally well "
-            f"(avg {avg_score:.1f}/10). Challenge them with advanced, nuanced questions "
-            "that test deep understanding — edge cases, trade-offs, and system-level thinking."
-        )
-    elif avg_score >= 6.0:
-        difficulty_directive = (
-            "Target difficulty: MEDIUM. The candidate is performing solidly "
-            f"(avg {avg_score:.1f}/10). Ask well-rounded questions that test core concepts "
-            "with some depth. Gradually introduce more challenging aspects."
-        )
+    # map score to difficulty level (1-5)
+    if avg_score >= 8.5:
+        target_level = 5
+    elif avg_score >= 7.0:
+        target_level = 4
+    elif avg_score >= 5.5:
+        target_level = 3
     elif avg_score >= 4.0:
-        difficulty_directive = (
-            "Target difficulty: EASY-MEDIUM. The candidate is struggling somewhat "
-            f"(avg {avg_score:.1f}/10). Ask clearer, more focused questions that build "
-            "confidence while still testing important fundamentals."
-        )
+        target_level = 2
     else:
-        difficulty_directive = (
-            "Target difficulty: EASY. The candidate is having significant difficulty "
-            f"(avg {avg_score:.1f}/10). Ask foundational questions with clear scope. "
-            "Focus on core concepts to help them rebuild confidence."
-        )
+        target_level = 1
+    
+    # clamp to role bounds if a role is set
+    if role and role in ROLE_DIFFICULTY_BOUNDS:
+        min_lvl, max_lvl = ROLE_DIFFICULTY_BOUNDS[role]
+        target_level = max(min_lvl, min(max_lvl, target_level))
+    
+    label = DIFFICULTY_LEVEL_LABELS[target_level]
+    description = DIFFICULTY_LEVEL_DESCRIPTIONS[target_level]
+    
+    difficulty_directive = (
+        f"Target difficulty: Level {target_level}/5 ({label}). "
+        f"The candidate's recent average is {avg_score:.1f}/10. "
+        f"{description}"
+    )
     
     return difficulty_directive, performance_context
 
@@ -131,19 +213,31 @@ def generate_question_node(state: dict) -> dict:
             
         prompt = REVIEW_QUESTION_PROMPT.format(bookmarked_question=bookmarked_q)
     elif mode == "BEHAVIORAL":
+        role = state.get("role")
+        role_context = get_role_context(role)
         mastered = state.get("mastered_questions", []) or []
         prompt = BEHAVIORAL_QUESTION_PROMPT.format(
             topics=", ".join(state["topics"] + state.get("custom_topics", [])),
             question_number=state["current_question_number"],
             max_questions=state["max_questions"],
+            role_context=role_context,
             resume_data=json.dumps(state.get("resume_data")) if state.get("resume_data") else "Not provided",
             questions_asked=json.dumps([q.get("question", "") for q in state.get("questions_asked", [])]),
             mastered_questions=json.dumps(mastered) if mastered else "None yet.",
         )
     else:
-        difficulty_directive, performance_context = compute_adaptive_difficulty(
-            state.get("evaluation_history", [])
-        )
+        role = state.get("role")
+        difficulty_mode = state.get("difficulty_mode", "ADAPTIVE")
+        
+        if difficulty_mode == "MANUAL":
+            manual_level = state.get("manual_difficulty", 3)
+            difficulty_directive, performance_context = compute_manual_difficulty(manual_level, role)
+        else:
+            difficulty_directive, performance_context = compute_adaptive_difficulty(
+                state.get("evaluation_history", []), role
+            )
+        
+        role_context = get_role_context(role)
         mastered = state.get("mastered_questions", []) or []
 
         prompt = QUESTION_GENERATION_PROMPT.format(
@@ -152,6 +246,7 @@ def generate_question_node(state: dict) -> dict:
             max_questions=state["max_questions"],
             difficulty_directive=difficulty_directive,
             performance_context=performance_context,
+            role_context=role_context,
             research_context=state.get("research_context", "No research available"),
             resume_data=json.dumps(state.get("resume_data")) if state.get("resume_data") else "No provided",
             questions_asked=json.dumps([q.get("question", "") for q in state.get("questions_asked", [])]),
@@ -201,6 +296,9 @@ def evaluate_answer_node(state: dict) -> dict:
             user_answer = msg.content
             break
     
+    role = state.get("role")
+    role_evaluation_context = get_role_evaluation_context(role)
+    
     if state["mode"] == "BEHAVIORAL":
         hints_used = state.get("current_hints_used", 0)
         hints_note = "Note: No hints were used, score normally." if hints_used == 0 else f"Note: {hints_used} hint(s) were used. The maximum score for this question is {10 - hints_used}."
@@ -209,7 +307,8 @@ def evaluate_answer_node(state: dict) -> dict:
             expected_points=json.dumps(current_q.get("expected_answer_points", [])),
             user_answer=user_answer,
             hints_used=hints_used,
-            hints_note=hints_note
+            hints_note=hints_note,
+            role_evaluation_context=role_evaluation_context,
         )
     elif state["mode"] == "TRAINING":
         hints_used = state.get("current_hints_used", 0)
@@ -219,13 +318,15 @@ def evaluate_answer_node(state: dict) -> dict:
             expected_points=json.dumps(current_q.get("expected_answer_points", [])),
             user_answer=user_answer,
             hints_used=hints_used,
-            hints_note=hints_note
+            hints_note=hints_note,
+            role_evaluation_context=role_evaluation_context,
         )
     else:
         prompt = EVALUATE_ANSWER_REALISTIC_PROMPT.format(
             question=current_q.get("question", ""),
             expected_points=json.dumps(current_q.get("expected_answer_points", [])),
             user_answer=user_answer,
+            role_evaluation_context=role_evaluation_context,
         )
 
     response = llm.invoke([
