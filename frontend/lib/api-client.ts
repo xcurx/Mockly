@@ -8,6 +8,9 @@ export async function startInterview(config: {
   mode: string;
   interactionType: string;
   maxQuestions: number;
+  difficultyMode?: string;
+  manualDifficulty?: number | null;
+  role?: string | null;
   resumeData?: Record<string, unknown> | null;
   bookmarked_questions?: string[];
   userId?: string;
@@ -19,6 +22,9 @@ export async function startInterview(config: {
       mode: config.mode,
       interaction_type: config.interactionType,
       max_questions: config.maxQuestions,
+      difficulty_mode: config.difficultyMode || "ADAPTIVE",
+      manual_difficulty: config.manualDifficulty ?? null,
+      role: config.role ?? null,
       resume_data: config.resumeData || null,
       bookmarked_questions: config.bookmarked_questions || [],
       user_id: config.userId || "",

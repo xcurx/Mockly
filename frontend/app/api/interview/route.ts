@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         )
     }
 
-    const { topics, customTopics, mode, interactionType, maxQuestions, timeLimitSeconds, resumeId} = await req.json()
+    const { topics, customTopics, mode, interactionType, maxQuestions, timeLimitSeconds, resumeId, difficultyMode, manualDifficulty, role } = await req.json()
     let resumeData: Record<string, unknown> | null = null;
     if (resumeId) {
         const resume = await prisma.resume.findUnique({
@@ -34,6 +34,9 @@ export async function POST(req: NextRequest) {
             interactionType,
             maxQuestions: maxQuestions || 10,
             timeLimitSeconds: timeLimitSeconds || null,
+            difficultyMode: difficultyMode || "ADAPTIVE",
+            manualDifficulty: difficultyMode === "MANUAL" ? manualDifficulty : null,
+            role: role || null,
             resumeId: resumeId || null
         }
     })
@@ -45,6 +48,9 @@ export async function POST(req: NextRequest) {
             mode,
             interactionType,
             maxQuestions: maxQuestions || 10,
+            difficultyMode: difficultyMode || "ADAPTIVE",
+            manualDifficulty: difficultyMode === "MANUAL" ? manualDifficulty : null,
+            role: role || null,
             resumeData,
             userId: session.user.id,
         })
@@ -66,22 +72,26 @@ export async function POST(req: NextRequest) {
         }
 
         let questionText: string | null = null;
+        let questionDifficulty: string | null = null;
         if (result.question) {
             if (typeof result.question === "string") {
                 try {
                     const parsed = JSON.parse(result.question);
                     questionText = parsed.question || result.question;
+                    questionDifficulty = parsed.difficulty || null;
                 } catch {
                     questionText = result.question;
                 }
             } else if (typeof result.question === "object") {
                 questionText = result.question.question || JSON.stringify(result.question);
+                questionDifficulty = result.question.difficulty || null;
             }
         }
 
         return NextResponse.json({
             interviewId: interview.id,
             question: questionText,
+            questionDifficulty,
             interviewState: result.interview_state
         })
     } catch(error) {

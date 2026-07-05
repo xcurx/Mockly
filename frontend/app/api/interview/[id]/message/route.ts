@@ -74,22 +74,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         }
 
         let questionText: string | null = null;
+        let questionDifficulty: string | null = null;
         if (result.question) {
             if (typeof result.question === "string") {
                 try {
                     const parsed = JSON.parse(result.question);
                     questionText = parsed.question || result.question;
+                    questionDifficulty = parsed.difficulty || null;
                 } catch {
                     questionText = result.question;
                 }
             } else if (typeof result.question === "object") {
                 questionText = result.question.question || JSON.stringify(result.question);
+                questionDifficulty = result.question.difficulty || null;
             }
         }
 
         return NextResponse.json({
             evaluation: result.evaluation,
             question: questionText,
+            questionDifficulty,
             questionNumber: result.question_number,
             interviewComplete: result.interview_complete,
             summary: result.summary || null,
