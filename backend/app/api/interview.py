@@ -23,6 +23,9 @@ class StartInterviewRequest(BaseModel):
     mode: str
     interaction_type: str
     max_questions: int
+    difficulty_mode: str = "ADAPTIVE"
+    manual_difficulty: int | None = None
+    role: str | None = None
     resume_data: dict | None = None
     bookmarked_questions: list[str] = []
     user_id: str = ""
@@ -56,6 +59,9 @@ async def start_interview(req: StartInterviewRequest):
         "mode": req.mode,
         "interaction_type": req.interaction_type,
         "max_questions": req.max_questions,
+        "difficulty_mode": req.difficulty_mode,
+        "manual_difficulty": req.manual_difficulty,
+        "role": req.role,
         "resume_data": req.resume_data,
         "bookmarked_questions": req.bookmarked_questions,
         "research_context": "",

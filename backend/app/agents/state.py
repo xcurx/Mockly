@@ -12,6 +12,9 @@ class InterviewState(TypedDict):
     mode: Literal["TRAINING", "REALISTIC", "REVIEW", "BEHAVIORAL"]
     interaction_type: str
     max_questions: int
+    difficulty_mode: str  # "ADAPTIVE" | "MANUAL"
+    manual_difficulty: Optional[int]  # 1-5 only used when mode is MANUAL
+    role: Optional[str]  # "INTERN" | "JUNIOR" | "MID" | "SENIOR" | "STAFF"
     bookmarked_questions: Optional[list[str]]
 
     questions_asked: list[dict]
