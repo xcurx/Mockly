@@ -69,3 +69,35 @@ export const BEHAVIORAL_CATEGORIES = [
   { id: "failure-learning", label: "Failure & Learning", emoji: "📈" },
   { id: "decision-making", label: "Decision Making", emoji: "🎯" },
 ] as const;
+
+export const DIFFICULTY_MODES = [
+  {
+    id: "ADAPTIVE",
+    label: "Adaptive",
+    description: "AI adjusts difficulty based on your performance",
+    emoji: "🎯",
+  },
+  {
+    id: "MANUAL",
+    label: "Manual",
+    description: "You choose a fixed difficulty level",
+    emoji: "🎚️",
+  },
+] as const;
+
+export const DIFFICULTY_LEVELS = [
+  { level: 1, label: "Foundational", description: "Core definitions, basic syntax" },
+  { level: 2, label: "Intermediate", description: "Apply concepts, compare trade-offs" },
+  { level: 3, label: "Advanced", description: "Edge cases, design decisions" },
+  { level: 4, label: "Expert", description: "System-level thinking, production gotchas" },
+  { level: 5, label: "Staff+", description: "Architecture-level, cross-system trade-offs" },
+] as const;
+
+export const EXPERIENCE_LEVELS = [
+  { id: "INTERN", label: "Intern", emoji: "🌱", description: "Fundamentals & basic application" },
+  { id: "JUNIOR", label: "Junior", emoji: "🟢", description: "Solid fundamentals with some depth" },
+  { id: "MID", label: "Mid-Level", emoji: "🔵", description: "Deeper trade-offs & real-world problem solving" },
+  { id: "SENIOR", label: "Senior", emoji: "🟣", description: "Architecture, system design & leadership" },
+  { id: "STAFF", label: "Staff+", emoji: "⭐", description: "Cross-system thinking & domain expertise" },
+] as const;
+
