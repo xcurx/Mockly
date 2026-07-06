@@ -11,6 +11,8 @@ Mockly is an AI-powered Mock Interview platform designed to help developers ace 
 *   **⚡ Smart-Fast LLM Routing:** Dynamic model routing optimizes latency and costs:
     *   **Fast Model:** Summarization and search query generation.
     *   **Smart Model:** Complex question generation and detailed answer evaluations.
+*   **🎯 Adaptive & Manual Difficulty:** Two difficulty modes — Adaptive (AI adjusts based on your performance, with role-bounded clamping) and Manual (fixed 5-level scale from Foundational to Staff+).
+*   **👤 Experience Level Calibration:** Optional role parameter (Intern → Staff+) that bounds the difficulty range and calibrates both question depth and evaluation expectations to match the candidate's level.
 *   **💾 Query Caching:** In-memory caching for web research results to save Tavily API credits and improve API response times.
 *   **📝 Interactive Chat Sandbox:** Responsive, sticky chat interface with isolated scroll areas for questions and evaluations.
 *   **🗣️ Voice Capabilities:** Integrated STS (Speech-to-Speech) and TTS (Text-to-Speech) features for an immersive and realistic interview experience.
@@ -20,6 +22,45 @@ Mockly is an AI-powered Mock Interview platform designed to help developers ace 
 *   **🧠 Vector Question Memory:** Uses ChromaDB and semantic similarity to remember which questions you've already mastered, ensuring fresh questions every time you practice a topic.
 *   **🔐 NextAuth Integration:** Out-of-the-box support for Google & GitHub social logins.
 *   **📊 Database Integration:** Prisma Client connected to a PostgreSQL database for session management.
+
+---
+
+## 🎚️ Difficulty & Experience Levels
+
+Mockly's difficulty system ensures questions are always calibrated to the right level for the candidate.
+
+### Difficulty Modes
+
+| Mode | Behavior |
+|---|---|
+| **Adaptive** (default) | AI adjusts difficulty based on a rolling window of your recent scores. If a role is set, difficulty is clamped within that role's range. |
+| **Manual** | You pick a fixed difficulty level (1–5) and all questions stay at that level. |
+
+### Difficulty Scale (1–5)
+
+| Level | Label | Description |
+|---|---|---|
+| 1 | Foundational | Core definitions, basic syntax, "what is X?" |
+| 2 | Intermediate | Apply concepts, compare trade-offs, "how does X work?" |
+| 3 | Advanced | Edge cases, design decisions, deeper "why" reasoning |
+| 4 | Expert | System-level thinking, performance implications, production gotchas |
+| 5 | Staff+ | Architecture-level, cross-system trade-offs |
+
+### Experience Levels (Optional)
+
+Setting an experience level tells the AI *"hard for whom?"* — it doesn't change what topics are asked, but calibrates the **depth** and **evaluation expectations**.
+
+| Role | Difficulty Range | What It Means |
+|---|---|---|
+| Intern | 1–2 | Fundamentals & basic application |
+| Junior | 1–3 | Solid fundamentals with some depth |
+| Mid-Level | 2–4 | Deeper trade-offs & real-world problem solving |
+| Senior | 3–5 | Architecture, system design & leadership |
+| Staff+ | 4–5 | Cross-system thinking & domain expertise |
+
+When a role is set, evaluation scoring is also calibrated — an intern won't be penalized for lacking production depth, while a senior is expected to give structured, comprehensive answers.
+
+During interviews, a **color-coded difficulty badge** (🟢 Easy / 🟡 Medium / 🔴 Hard) is shown in the header for each question.
 
 ---
 
