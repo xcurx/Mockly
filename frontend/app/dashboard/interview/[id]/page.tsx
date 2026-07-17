@@ -6,7 +6,7 @@ import { ChatMessages, type Message } from "@/components/interview/chat-messages
 import { ChatInput } from "@/components/interview/chat-input";
 import { InterviewHeader } from "@/components/interview/interview-header";
 import { CircleNotch } from "@phosphor-icons/react";
-import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
+import { useDeepgramTTS } from "@/hooks/useDeepgramTTS";
 
 interface InterviewSessionData {
   interviewState: Record<string, unknown>;
@@ -40,7 +40,7 @@ export default function InterviewPage() {
   const [hintsUsed, setHintsUsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { speak, cancel, isSpeaking } = useSpeechSynthesis();
+  const { speak, cancel, isSpeaking } = useDeepgramTTS();
   const spokenMessagesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { PaperPlaneRight, Microphone, StopCircle } from "@phosphor-icons/react";
-import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useDeepgramSTT } from "@/hooks/useDeepgramSTT";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -36,7 +36,7 @@ export function ChatInput({
     startListening,
     stopListening,
     resetTranscript,
-  } = useSpeechRecognition();
+  } = useDeepgramSTT();
 
   const handleSendText = () => {
     const trimmed = value.trim();
